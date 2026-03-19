@@ -1,3 +1,32 @@
 {
-  "ultimas_cotizaciones": []
+  "ultimas_cotizaciones": [
+    {
+      "fecha": "2026-03-19T17:13:22.102Z",
+      "timestamp": 1773940402102,
+      "blue": {
+        "compra": 1410,
+        "venta": 1430
+      },
+      "oficial": {
+        "compra": 1365,
+        "venta": 1415
+      },
+      "mep": {
+        "compra": 1419.1,
+        "venta": 1421.5
+      },
+      "ccl": {
+        "compra": 1468.8,
+        "venta": 1469.4
+      },
+      "tarjeta": {
+        "compra": 1774.5,
+        "venta": 1839.5
+      },
+      "cripto": {
+        "compra": 1473.4,
+        "venta": 1473.5
+      }
+    }
+  ]
 }
