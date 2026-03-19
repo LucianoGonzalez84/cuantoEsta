@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  
+  <!-- Página principal -->
+  <url>
+    <loc>https://cuantoesta.ar/</loc>
+    <lastmod>2026-03-19</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+  </url>
+  
+  <!-- Cuando agregues artículos SEO, los vas sumando acá:
+  
+  <url>
+    <loc>https://cuantoesta.ar/que-es-dolar-blue</loc>
+    <lastmod>2026-03-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <url>
+    <loc>https://cuantoesta.ar/como-calcular-brecha-cambiaria</loc>
+    <lastmod>2026-03-XX</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  -->
+  
+</urlset>

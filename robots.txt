@@ -1,0 +1,11 @@
+# robots.txt para CuantoEsta.ar
+# Permite a todos los bots indexar todo el contenido
+
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://cuantoesta.ar/sitemap.xml
+
+# Crawl-delay para no saturar
+Crawl-delay: 1
