@@ -27,6 +27,34 @@
         "compra": 1473.6,
         "venta": 1473.7
       }
+    },
+    {
+      "fecha": "2026-03-20T23:23:52.972Z",
+      "timestamp": 1774049032972,
+      "blue": {
+        "compra": 1405,
+        "venta": 1425
+      },
+      "oficial": {
+        "compra": 1360,
+        "venta": 1410
+      },
+      "mep": {
+        "compra": 1418.2,
+        "venta": 1428.3
+      },
+      "ccl": {
+        "compra": 1468,
+        "venta": 1470.5
+      },
+      "tarjeta": {
+        "compra": 1768,
+        "venta": 1833
+      },
+      "cripto": {
+        "compra": 1475.8,
+        "venta": 1475.9
+      }
     }
   ]
 }
