@@ -1,0 +1,1736 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Security: Content Security Policy -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com https://raw.githubusercontent.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://dolarapi.com https://raw.githubusercontent.com https://www.google-analytics.com https://analytics.google.com https://cdn.jsdelivr.net;">
+    
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-98181VFK28"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-98181VFK28');
+
+        // ==================== FUNCIONES NUEVAS V2.0 ====================
+        
+        // Actualizar banner compacto con datos del mercado
+        function actualizarRanking() {
+            const cotizacionesArray = [
+                { nombre: 'Blue', valor: cotizaciones.blue.venta, variacion: cotizaciones.blue.variacion, compra: cotizaciones.blue.compra },
+                { nombre: 'Oficial', valor: cotizaciones.oficial.venta, variacion: cotizaciones.oficial.variacion, compra: cotizaciones.oficial.compra },
+                { nombre: 'MEP', valor: cotizaciones.mep.venta, variacion: cotizaciones.mep.variacion, compra: cotizaciones.mep.compra },
+                { nombre: 'CCL', valor: cotizaciones.ccl.venta, variacion: cotizaciones.ccl.variacion, compra: cotizaciones.ccl.compra },
+                { nombre: 'Tarjeta', valor: cotizaciones.tarjeta.venta, variacion: cotizaciones.tarjeta.variacion, compra: cotizaciones.tarjeta.compra },
+                { nombre: 'Cripto', valor: cotizaciones.cripto.venta, variacion: cotizaciones.cripto.variacion, compra: cotizaciones.cripto.compra }
+            ].filter(c => c.valor > 0);
+            
+            if (cotizacionesArray.length === 0) return;
+            
+            // Más barato
+            const masBarato = cotizacionesArray.reduce((min, c) => c.valor < min.valor ? c : min);
+            const elBarato = document.getElementById('dato-barato');
+            if (elBarato) {
+                elBarato.textContent = `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
+            }
+            
+            // Más caro
+            const masCaro = cotizacionesArray.reduce((max, c) => c.valor > max.valor ? c : max);
+            const elCaro = document.getElementById('dato-caro');
+            if (elCaro) {
+                elCaro.textContent = `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
+            }
+            
+            // Mayor variación
+            const conVariacion = cotizacionesArray.filter(c => c.variacion !== null && c.variacion !== undefined);
+            const elSuba = document.getElementById('dato-suba');
+            if (conVariacion.length > 0 && elSuba) {
+                const mayorVariacion = conVariacion.reduce((max, c) => 
+                    Math.abs(c.variacion) > Math.abs(max.variacion) ? c : max
+                );
+                const signo = mayorVariacion.variacion >= 0 ? '+' : '';
+                elSuba.textContent = `${mayorVariacion.nombre} ${signo}${mayorVariacion.variacion.toFixed(2)}%`;
+            } else if (elSuba) {
+                elSuba.textContent = 'Esperando datos';
+            }
+            
+            // Brecha Blue-Oficial
+            const elBrecha = document.getElementById('dato-brecha');
+            if (cotizaciones.blue.venta > 0 && cotizaciones.oficial.venta > 0 && elBrecha) {
+                const brecha = ((cotizaciones.blue.venta - cotizaciones.oficial.venta) / cotizaciones.oficial.venta) * 100;
+                elBrecha.textContent = `${brecha.toFixed(2)}%`;
+            }
+            
+            // Actualizar precios de compra en las cotizaciones
+            cotizacionesArray.forEach(cot => {
+                const cards = document.querySelectorAll('.cotizacion-card');
+                cards.forEach(card => {
+                    const nombreElement = card.querySelector('.cotizacion-nombre');
+                    if (nombreElement && nombreElement.textContent.includes(cot.nombre)) {
+                        const precioElement = card.querySelector('.cotizacion-precio');
+                        const compraElement = card.querySelector('.cotizacion-compra');
+                        
+                        if (cot.compra > 0 && compraElement) {
+                            const compraTexto = `$${cot.compra.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                            compraElement.textContent = `Compra: ${compraTexto}`;
+                            if (precioElement) {
+                                precioElement.setAttribute('data-compra', compraTexto);
+                                precioElement.setAttribute('title', `Compra: ${compraTexto} | Venta: $${cot.valor.toFixed(2)}`);
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        
+
+        
+        // Variación semanal
+        function mostrarVariacionSemanal(historico) {
+            if (historico.length < 7) {
+                document.getElementById('variacion-semanal').style.display = 'none';
+                return;
+            }
+            
+            const hace7dias = historico[0].blue.venta;
+            const hoy = historico[historico.length - 1].blue.venta;
+            const diferencia = hoy - hace7dias;
+            const porcentaje = (diferencia / hace7dias) * 100;
+            
+            const signo = diferencia >= 0 ? '+' : '';
+            const clase = diferencia >= 0 ? 'variacion-positiva' : 'variacion-negativa';
+            
+            document.getElementById('variacion-semanal-texto').innerHTML = `
+                El Dólar Blue <span class="variacion-semanal-cambio ${clase}">${diferencia >= 0 ? 'subió' : 'bajó'} 
+                $${Math.abs(diferencia).toFixed(2)} (${signo}${porcentaje.toFixed(2)}%)</span> en los últimos 7 días.
+                <br><span style="font-size: 0.875rem;">Hace 7 días: $${hace7dias.toFixed(2)} → Hoy: $${hoy.toFixed(2)}</span>
+            `;
+            
+            document.getElementById('variacion-semanal').style.display = 'block';
+        }
+
+        // Tiempo relativo
+        function actualizarTiempoRelativo() {
+            const ahora = new Date();
+            const ultimaAct = new Date(ultimaActualizacion);
+            const diff = Math.floor((ahora - ultimaAct) / 1000);
+            
+            let texto = '';
+            if (diff < 60) texto = 'recién';
+            else if (diff < 120) texto = 'hace un ratito';
+            else if (diff < 300) texto = 'hace un toque';
+            else if (diff < 600) texto = 'hace unos minutos';
+            else if (diff < 3600) texto = `hace ${Math.floor(diff/60)} min`;
+            else if (diff < 7200) texto = 'hace una hora';
+            else texto = `hace ${Math.floor(diff/3600)} hs`;
+            
+            const el = document.getElementById('tiempo-relativo');
+            if (el) el.textContent = texto;
+        }
+
+        setInterval(actualizarTiempoRelativo, 60000);
+
+    </script>
+    
+    <!-- SEO -->
+    <title>¿Cuánto Está el Dólar Hoy? | CuantoEsta.ar - Cotización en Tiempo Real</title>
+    <meta name="description" content="Cotización del dólar en Argentina actualizada al instante. Blue, Oficial, MEP, CCL, Tarjeta y Cripto. Conversor y gráficos históricos. ¡Sabé el dólar al toque!">
+    <meta name="keywords" content="dólar hoy, dólar blue, cotización dólar, dólar oficial, cuanto está el dólar, precio dólar argentina">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="¿Cuánto Está el Dólar Hoy? - Cotización en Tiempo Real">
+    <meta property="og:description" content="Sabé el precio del dólar al toque. Blue, Oficial, MEP, CCL y más. Actualizado cada 5 minutos.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cuantoesta.ar">
+    <meta property="og:image" content="https://cuantoesta.ar/og-image.png">
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="¿Cuánto Está el Dólar Hoy?">
+    <meta name="twitter:description" content="Cotización en tiempo real. Blue, Oficial, MEP, CCL. Sabé el dólar al toque 🇦🇷">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💵</text></svg>">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            /* Colores Argentinos Modernos */
+            --celeste: #0EA5E9;
+            --celeste-dark: #0284C7;
+            --celeste-light: #38BDF8;
+            --blanco: #FFFFFF;
+            --verde: #10B981;
+            --rojo: #EF4444;
+            --gris-50: #F8FAFC;
+            --gris-100: #F1F5F9;
+            --gris-200: #E2E8F0;
+            --gris-300: #CBD5E1;
+            --gris-700: #334155;
+            --gris-900: #0F172A;
+            
+            /* Tipografía */
+            --font-display: 'Sora', system-ui, sans-serif;
+            --font-body: 'Work Sans', system-ui, sans-serif;
+            
+            /* Sombras */
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, var(--gris-50) 0%, var(--blanco) 100%);
+            color: var(--gris-900);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        /* Header */
+        header {
+            background: var(--blanco);
+            border-bottom: 3px solid var(--celeste);
+            padding: 1.5rem 1rem;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.5s ease-out;
+        }
+        
+        @keyframes slideDown {
+            from {
+                transform: translateY(-100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.1));
+        }
+        
+        .logo-text {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--celeste);
+            letter-spacing: -0.5px;
+        }
+        
+        .logo-text span {
+            color: var(--gris-900);
+        }
+        
+        .tagline {
+            font-size: 0.875rem;
+            color: var(--gris-700);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1rem;
+        }
+        
+        /* Cotizaciones Grid */
+        .cotizaciones-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.6s ease-out 0.2s both;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .cotizacion-card {
+            background: white;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .cotizacion-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--celeste), var(--celeste-light));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+        
+        .cotizacion-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+            border-color: var(--celeste-light);
+        }
+        
+        .cotizacion-card:hover::before {
+            transform: scaleX(1);
+        }
+        
+        .cotizacion-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .cotizacion-nombre {
+            font-family: var(--font-display);
+            font-size: 0.875rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--gris-700);
+        }
+        
+        .cotizacion-badge {
+            font-size: 0.75rem;
+            padding: 0.25rem 0.625rem;
+            border-radius: 999px;
+            font-weight: 600;
+            background: var(--gris-100);
+            color: var(--gris-700);
+        }
+        
+        .cotizacion-badge.popular {
+            background: linear-gradient(135deg, var(--celeste), var(--celeste-dark));
+            color: var(--blanco);
+        }
+        
+        .cotizacion-valor {
+            font-family: var(--font-display);
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--gris-900);
+            line-height: 1;
+            margin-bottom: 0.5rem;
+        }
+        
+        /* Variación diaria */
+        .cotizacion-variacion {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-top: 0.5rem;
+        }
+        
+        .cotizacion-variacion.positiva {
+            color: var(--verde);
+        }
+        
+        .cotizacion-variacion.negativa {
+            color: var(--rojo);
+        }
+        
+        .cotizacion-variacion.neutral {
+            color: var(--gris-700);
+        }
+        
+        .variacion-flecha {
+            font-size: 1rem;
+        }
+        
+        /* Mini sparkline - ALTURA FIJA BLINDADA */
+        .mini-sparkline {
+            width: 100%;
+            height: 50px !important;
+            max-height: 50px !important;
+            min-height: 50px !important;
+            margin-top: 0.75rem;
+            display: block;
+        }
+        
+        /* Desktop - Un poco más alto */
+        @media (min-width: 768px) {
+            .mini-sparkline {
+                height: 60px !important;
+                max-height: 60px !important;
+                min-height: 60px !important;
+            }
+        }
+        
+        /* Precio de compra */
+        .cotizacion-compra {
+            font-size: 0.875rem;
+            color: var(--gris-700);
+            margin-top: 0.25rem;
+            font-weight: 500;
+        }
+
+        /* Mobile: ocultar compra, mostrar en tooltip */
+        @media (max-width: 768px) {
+            .cotizacion-compra {
+                display: none;
+            }
+            
+            .cotizacion-precio[data-compra] {
+                cursor: help;
+                position: relative;
+            }
+            
+            .cotizacion-precio[data-compra]::after {
+                content: 'ⓘ';
+                font-size: 0.75rem;
+                color: var(--gris-700);
+                margin-left: 0.25rem;
+                opacity: 0.6;
+            }
+        }
+
+        /* Banner Compacto - Datos del Mercado */
+        .datos-mercado-compacto {
+            background: #F8FAFC;
+            border-left: 1px solid #E2E8F0;
+            border-radius: 0.375rem;
+            padding: 0.5rem 1rem;
+            margin: 1rem auto;
+            max-width: 1200px;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.75rem;
+            color: #64748B;
+        }
+
+        .dato-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-weight: 500;
+            color: #64748B;
+            white-space: nowrap;
+        }
+
+        .dato-valor {
+            font-family: var(--font-display);
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.8125rem;
+        }
+
+        @media (max-width: 768px) {
+            .datos-mercado-compacto {
+                flex-direction: column;
+                gap: 0.375rem;
+                font-size: 0.6875rem;
+                margin: 0.75rem 1rem;
+                padding: 0.5rem 0.75rem;
+            }
+        }
+
+        /* Variación semanal */
+        .variacion-semanal {
+            background: #E0F2FE;
+            border-left: 4px solid var(--celeste);
+            border-radius: 0.5rem;
+            padding: 1.25rem 1.5rem;
+            margin: 2rem auto;
+            max-width: 1200px;
+        }
+
+        .variacion-semanal-titulo {
+            font-family: var(--font-display);
+            font-size: 1rem;
+            font-weight: 700;
+            color: #0284C7;
+            margin-bottom: 0.5rem;
+        }
+
+        .variacion-semanal-datos {
+            font-size: 0.9375rem;
+            color: var(--gris-900);
+            line-height: 1.6;
+        }
+
+        .variacion-semanal-cambio {
+            font-weight: 700;
+            font-family: var(--font-display);
+        }
+
+        .variacion-positiva {
+            color: var(--verde);
+        }
+
+        .variacion-negativa {
+            color: var(--rojo);
+        }
+
+        
+
+        @media (max-width: 768px) {
+            .ranking-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 1rem;
+            }
+            
+            .ranking-hero {
+                padding: 1.5rem 1rem;
+                margin: 1.5rem 1rem;
+            }
+            
+            
+            
+            .variacion-semanal {
+                margin: 1.5rem 1rem;
+                padding: 1rem;
+            }
+            
+            
+        }
+        
+        .cotizacion-variacion {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 0.375rem 0.75rem;
+            border-radius: 8px;
+        }
+        
+        .cotizacion-variacion.positivo {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--verde);
+        }
+        
+        .cotizacion-variacion.negativo {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--rojo);
+        }
+        
+        .cotizacion-variacion.neutro {
+            background: var(--gris-100);
+            color: var(--gris-700);
+        }
+        
+        .loading-skeleton {
+            background: linear-gradient(90deg, var(--gris-100) 25%, var(--gris-200) 50%, var(--gris-100) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            height: 2.5rem;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        /* Conversor */
+        .conversor-section {
+            background: var(--blanco);
+            border-radius: 20px;
+            padding: 2.5rem;
+            box-shadow: var(--shadow-xl);
+            margin-bottom: 3rem;
+            border: 3px solid var(--celeste-light);
+            animation: fadeInUp 0.6s ease-out 0.4s both;
+        }
+        
+        .section-title {
+            font-family: var(--font-display);
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: var(--gris-900);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .conversor-grid {
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            gap: 1.5rem;
+            align-items: end;
+        }
+        
+        .conversor-input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .conversor-label {
+            font-weight: 600;
+            color: var(--gris-700);
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .conversor-input-wrapper {
+            position: relative;
+        }
+        
+        .conversor-input {
+            width: 100%;
+            padding: 1rem 1rem 1rem 3rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: var(--font-display);
+            border: 2px solid var(--gris-200);
+            border-radius: 12px;
+            outline: none;
+            transition: all 0.2s;
+            background: var(--gris-50);
+        }
+        
+        .conversor-input:focus {
+            border-color: var(--celeste);
+            background: var(--blanco);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        }
+        
+        .currency-symbol {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--gris-700);
+        }
+        
+        .swap-button {
+            padding: 0.75rem;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--celeste), var(--celeste-dark));
+            border: none;
+            border-radius: 50%;
+            color: var(--blanco);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            align-self: center;
+        }
+        
+        .swap-button:hover {
+            transform: rotate(180deg) scale(1.1);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .conversor-select {
+            width: 100%;
+            padding: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            font-family: var(--font-display);
+            border: 2px solid var(--gris-200);
+            border-radius: 12px;
+            background: var(--gris-50);
+            cursor: pointer;
+            outline: none;
+            transition: all 0.2s;
+            color: var(--gris-900);
+        }
+        
+        .conversor-select:focus {
+            border-color: var(--celeste);
+            background: var(--blanco);
+            box-shadow: 0 0 0 4px rgba(14, 165, 233, 0.1);
+        }
+        
+        .conversion-result {
+            margin-top: 1.5rem;
+            padding: 1.5rem;
+            background: linear-gradient(135deg, var(--gris-50), var(--gris-100));
+            border-radius: 12px;
+            border-left: 4px solid var(--celeste);
+        }
+        
+        .conversion-result-text {
+            font-size: 1.125rem;
+            color: var(--gris-700);
+            margin-bottom: 0.5rem;
+        }
+        
+        .conversion-result-value {
+            font-family: var(--font-display);
+            font-size: 2.25rem;
+            font-weight: 800;
+            color: var(--celeste);
+        }
+        
+        /* Brecha */
+        .brecha-section {
+            background: linear-gradient(135deg, var(--gris-900), var(--gris-700));
+            color: var(--blanco);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-xl);
+            animation: fadeInUp 0.6s ease-out 0.6s both;
+        }
+        
+        .brecha-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 2rem;
+        }
+        
+        .brecha-info h2 {
+            font-family: var(--font-display);
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+        }
+        
+        .brecha-info p {
+            opacity: 0.9;
+        }
+        
+        .brecha-valor {
+            text-align: center;
+        }
+        
+        .brecha-porcentaje {
+            font-family: var(--font-display);
+            font-size: 4rem;
+            font-weight: 800;
+            line-height: 1;
+            background: linear-gradient(135deg, var(--celeste-light), var(--blanco));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .brecha-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Footer */
+        footer {
+            background: var(--gris-900);
+            color: var(--blanco);
+            padding: 3rem 1rem 2rem;
+            margin-top: 4rem;
+        }
+        
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        
+        .footer-section h3 {
+            font-family: var(--font-display);
+            font-size: 1.125rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--celeste-light);
+        }
+        
+        .footer-section p,
+        .footer-section a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            line-height: 1.8;
+            transition: color 0.2s;
+        }
+        
+        .footer-section a:hover {
+            color: var(--celeste-light);
+        }
+        
+        .footer-bottom {
+            text-align: center;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 0.875rem;
+        }
+        
+        .disclaimer {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            line-height: 1.6;
+            margin-top: 1rem;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header-content {
+                justify-content: center;
+                text-align: center;
+            }
+            
+            .logo-text {
+                font-size: 1.5rem;
+            }
+            
+            .tagline {
+                font-size: 0.75rem;
+            }
+            
+            .cotizaciones-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .conversor-section {
+                padding: 1.5rem;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .conversor-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            
+            .swap-button {
+                width: 40px;
+                height: 40px;
+                font-size: 1.25rem;
+                transform: rotate(90deg);
+                margin: 0.5rem auto;
+            }
+            
+            .swap-button:hover {
+                transform: rotate(270deg) scale(1.1);
+            }
+            
+            .brecha-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .brecha-porcentaje {
+                font-size: 3rem;
+            }
+        }
+        
+        /* Ultima actualización */
+        .update-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--gris-100);
+            border-radius: 999px;
+            font-size: 0.875rem;
+            color: var(--gris-700);
+            font-weight: 500;
+        }
+        
+        .pulse {
+            width: 8px;
+            height: 8px;
+            background: var(--verde);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.5;
+                transform: scale(1.2);
+            }
+        }
+        
+        /* Skip to content (accesibilidad) */
+        .skip-to-content {
+            position: absolute;
+            top: -100px;
+            left: 0;
+            background: var(--celeste);
+            color: var(--blanco);
+            padding: 0.75rem 1.5rem;
+            text-decoration: none;
+            font-weight: 600;
+            z-index: 9999;
+            border-radius: 0 0 8px 0;
+        }
+        
+        .skip-to-content:focus {
+            top: 0;
+        }
+    </style>
+</head>
+<body>
+    <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
+    
+    <!-- Header -->
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo">
+                <span class="logo-icon">💵</span>
+                <h1 class="logo-text">Cuánto<span>Está</span></h1>
+            </a>
+            <div class="tagline">
+                Sabé el dólar al toque 🇦🇷
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    
+    <!-- Banner Compacto - Datos del Mercado -->
+    <div class="datos-mercado-compacto">
+        <div class="dato-item">
+            💎 Más barato: <span class="dato-valor" id="dato-barato">Cargando...</span>
+        </div>
+        <div class="dato-item">
+            📈 Más caro: <span class="dato-valor" id="dato-caro">Cargando...</span>
+        </div>
+        <div class="dato-item">
+            🔥 Mayor suba: <span class="dato-valor" id="dato-suba">-</span>
+        </div>
+        <div class="dato-item">
+            📊 Brecha: <span class="dato-valor" id="dato-brecha">-</span>
+        </div>
+    </div>
+
+    <div class="container" id="main-content" role="main">
+        <!-- Update Badge -->
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="update-badge">
+                <span class="pulse"></span>
+                <span>Última actualización: <span id="last-update">Cargando...</span></span>
+            </div>
+        </div>
+
+        <!-- Cotizaciones Grid -->
+        <section class="cotizaciones-grid" id="cotizaciones-grid" aria-label="Cotizaciones del dólar en tiempo real" role="region" aria-live="polite">
+            <!-- Blue -->
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar Blue</div>
+                    <div class="cotizacion-badge popular">MÁS BUSCADO</div>
+                </div>
+                <div class="cotizacion-valor" id="blue-valor">
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="cotizacion-variacion" id="blue-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                    
+                </div>
+                <canvas class="mini-sparkline" id="blue-sparkline" width="400" height="60" style="display: none;"></canvas>
+            </div>
+
+            <!-- Oficial -->
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar Oficial</div>
+                    <div class="cotizacion-badge">BNA</div>
+                </div>
+                <div class="cotizacion-valor" id="oficial-valor">
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="cotizacion-variacion" id="oficial-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                    
+                </div>
+                <canvas class="mini-sparkline" id="oficial-sparkline" width="400" height="60" style="display: none;"></canvas>
+            </div>
+
+            <!-- MEP -->
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar MEP</div>
+                    <div class="cotizacion-badge">BOLSA</div>
+                </div>
+                <div class="cotizacion-valor" id="mep-valor">
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="cotizacion-variacion" id="mep-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                    
+                </div>
+                <canvas class="mini-sparkline" id="mep-sparkline" width="400" height="60" style="display: none;"></canvas>
+            </div>
+
+            <!-- CCL -->
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar CCL</div>
+                    <div class="cotizacion-badge">CONTADO CON LIQUI</div>
+                </div>
+                <div class="cotizacion-valor" id="ccl-valor">
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="cotizacion-variacion" id="ccl-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                    
+                </div>
+                <canvas class="mini-sparkline" id="ccl-sparkline" width="400" height="60" style="display: none;"></canvas>
+            </div>
+
+            <!-- Tarjeta -->
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar Tarjeta</div>
+                    <div class="cotizacion-badge">OFICIAL + 60%</div>
+                </div>
+                <div class="cotizacion-valor" id="tarjeta-valor">
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="cotizacion-variacion" id="tarjeta-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                    
+                </div>
+                <canvas class="mini-sparkline" id="tarjeta-sparkline" width="400" height="60" style="display: none;"></canvas>
+            </div>
+
+            <!-- Cripto -->
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar Cripto</div>
+                    <div class="cotizacion-badge">USDT</div>
+                </div>
+                <div class="cotizacion-valor" id="cripto-valor">
+                    <div class="loading-skeleton"></div>
+                </div>
+                <div class="cotizacion-variacion" id="cripto-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                    
+                </div>
+                <canvas class="mini-sparkline" id="cripto-sparkline" width="400" height="60" style="display: none;"></canvas>
+            </div>
+        </section>
+
+        <!-- Conversor -->
+        <section class="conversor-section" aria-labelledby="conversor-title">
+            <h2 class="section-title" id="conversor-title">🔄 Conversor</h2>
+            <div class="conversor-grid">
+                <div class="conversor-input-group">
+                    <label class="conversor-label" for="input-from" id="label-from">USD Dólares</label>
+                    <div class="conversor-input-wrapper">
+                        <span class="currency-symbol" id="symbol-from" aria-hidden="true">$</span>
+                        <input 
+                            type="number" 
+                            class="conversor-input" 
+                            id="input-from" 
+                            value="100" 
+                            min="0" 
+                            step="0.01"
+                            placeholder="0.00"
+                            aria-label="Cantidad a convertir"
+                        >
+                    </div>
+                    <select class="conversor-select" id="select-from" style="display: none;">
+                        <option value="usd">USD Dólares</option>
+                        <option value="ars">ARS Pesos</option>
+                    </select>
+                </div>
+
+                <button class="swap-button" id="swap-btn" title="Invertir conversión" aria-label="Invertir dirección de conversión">
+                    ⇄
+                </button>
+
+                <div class="conversor-input-group">
+                    <label class="conversor-label" for="cotizacion-select">Cotización</label>
+                    <select class="conversor-select" id="cotizacion-select" aria-label="Seleccionar tipo de cotización">
+                        <option value="blue">Blue</option>
+                        <option value="oficial">Oficial</option>
+                        <option value="mep">MEP</option>
+                        <option value="ccl">CCL</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="cripto">Cripto</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="conversion-result" id="conversion-result" aria-live="polite" aria-atomic="true">
+                <div class="conversion-result-text">👉 Te dan aprox:</div>
+                <div class="conversion-result-value" id="conversion-value">$ 0</div>
+            </div>
+        </section>
+
+        <!-- Brecha Cambiaria -->
+        <div class="brecha-section">
+            <div class="brecha-content">
+                <div class="brecha-info">
+                    <h2>Brecha Cambiaria</h2>
+                    <p>Diferencia entre Dólar Blue y Oficial</p>
+                </div>
+                <div class="brecha-valor">
+                    <div class="brecha-porcentaje" id="brecha-porcentaje">0%</div>
+                    <div class="brecha-label">DE DIFERENCIA</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico Histórico 7 Días -->
+        <div class="chart-section">
+            <h2 class="section-title">📈 Evolución Últimos 7 Días</h2>
+            <div class="chart-container">
+                <canvas id="myChart"></canvas>
+            </div>
+        </div>
+        
+    <!-- Variación Semanal -->
+    <div class="variacion-semanal" id="variacion-semanal" style="display: none;">
+        <div class="variacion-semanal-titulo">📅 Variación últimos 7 días (Dólar Blue)</div>
+        <div class="variacion-semanal-datos">
+            <span id="variacion-semanal-texto">-</span>
+        </div>
+    </div>
+
+    </div>
+    <!-- Fin container -->
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>CuantoEsta.ar</h3>
+                    <p>Cotización del dólar en Argentina actualizada en tiempo real. Sabé el precio al toque, sin vueltas.</p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Fuentes</h3>
+                    <p>
+                        <a href="https://dolarapi.com" target="_blank" rel="noopener">DolarApi.com</a><br>
+                        Los datos se actualizan automáticamente cada 5-10 minutos desde fuentes oficiales.
+                    </p>
+                </div>
+                
+                <div class="footer-section">
+                    <h3>Contacto</h3>
+                    <p>
+                        <a href="/cdn-cgi/l/email-protection#96f5e3f7f8e2f9f3e5e2f7b8f7e4d6f1fbf7fffab8f5f9fb"><span class="__cf_email__" data-cfemail="4e2d3b2f203a212b3d3a2f602f3c0e29232f2722602d2123">[email&#160;protected]</span></a><br>
+                        ¿Sugerencias? ¿Feedback? Escribinos.
+                    </p>
+                </div>
+            </div>
+
+            <div class="disclaimer">
+                ⚠️ <strong>Disclaimer:</strong> Los valores mostrados son informativos y orientativos. Para operaciones financieras, consultá con tu banco o casa de cambio. CuantoEsta.ar no se responsabiliza por decisiones tomadas en base a esta información.
+            </div>
+
+            <div class="footer-bottom">
+                © 2026 CuantoEsta.ar • Hecho con 💚 en Argentina
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+        // Datos globales
+        let cotizaciones = {
+            blue: { compra: 0, venta: 0 },
+            oficial: { compra: 0, venta: 0 },
+            mep: { venta: 0 },
+            ccl: { venta: 0 },
+            tarjeta: { venta: 0 },
+            cripto: { venta: 0 }
+        };
+        let ultimaActualizacion = new Date();
+
+        let isUsdToArs = true;
+
+        // Cargar cotizaciones al inicio
+        cargarCotizaciones();
+
+        async function cargarCotizaciones() {
+            try {
+                const [blue, oficial, mep, ccl, tarjeta, cripto] = await Promise.all([
+                    fetch('https://dolarapi.com/v1/dolares/blue').then(r => r.json()),
+                    fetch('https://dolarapi.com/v1/dolares/oficial').then(r => r.json()),
+                    fetch('https://dolarapi.com/v1/dolares/bolsa').then(r => r.json()),
+                    fetch('https://dolarapi.com/v1/dolares/contadoconliqui').then(r => r.json()),
+                    fetch('https://dolarapi.com/v1/dolares/tarjeta').then(r => r.json()),
+                    fetch('https://dolarapi.com/v1/dolares/cripto').then(r => r.json())
+                ]);
+
+                cotizaciones.blue = blue;
+                cotizaciones.oficial = oficial;
+                cotizaciones.mep = mep;
+                cotizaciones.ccl = ccl;
+                cotizaciones.tarjeta = tarjeta;
+                cotizaciones.cripto = cripto;
+
+                actualizarUI();
+                actualizarConversion();
+                actualizarBrecha();
+                actualizarRanking();
+                actualizarUltimaActualizacion();
+                actualizarVariaciones(); // Nueva función
+                crearSparklines(); // Nueva función
+            } catch (error) {
+                console.error('Error al cargar cotizaciones:', error);
+                mostrarErrorFallback();
+            }
+        }
+
+        function actualizarUI() {
+            // Blue
+            document.getElementById('blue-valor').textContent = formatPeso(cotizaciones.blue.venta);
+            
+            // Oficial
+            document.getElementById('oficial-valor').textContent = formatPeso(cotizaciones.oficial.venta);
+            
+            // MEP
+            document.getElementById('mep-valor').textContent = formatPeso(cotizaciones.mep.venta);
+            
+            // CCL
+            document.getElementById('ccl-valor').textContent = formatPeso(cotizaciones.ccl.venta);
+            
+            // Tarjeta
+            document.getElementById('tarjeta-valor').textContent = formatPeso(cotizaciones.tarjeta.venta);
+            
+            // Cripto
+            document.getElementById('cripto-valor').textContent = formatPeso(cotizaciones.cripto.venta);
+        }
+
+        function formatPeso(valor) {
+            return '$' + parseFloat(valor).toLocaleString('es-AR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function actualizarBrecha() {
+            const blue = cotizaciones.blue.venta;
+            const oficial = cotizaciones.oficial.venta;
+            const brecha = ((blue - oficial) / oficial * 100).toFixed(1);
+            document.getElementById('brecha-porcentaje').textContent = brecha + '%';
+        }
+
+        function actualizarUltimaActualizacion() {
+            const ahora = new Date();
+            const hora = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('last-update').textContent = hora + ' hs';
+        }
+
+        function mostrarErrorFallback() {
+            document.querySelectorAll('.cotizacion-valor').forEach(el => {
+                el.textContent = 'Error';
+            });
+        }
+
+        // Conversor
+        const inputFrom = document.getElementById('input-from');
+        const cotizacionSelect = document.getElementById('cotizacion-select');
+        const swapBtn = document.getElementById('swap-btn');
+        const conversionValue = document.getElementById('conversion-value');
+
+        inputFrom.addEventListener('input', actualizarConversion);
+        cotizacionSelect.addEventListener('change', actualizarConversion);
+
+        function actualizarConversion() {
+            const monto = parseFloat(inputFrom.value) || 0;
+            const cotizacionTipo = cotizacionSelect.value;
+            const tasaCambio = cotizaciones[cotizacionTipo]?.venta || 0;
+            
+            if (isUsdToArs) {
+                const resultado = monto * tasaCambio;
+                conversionValue.textContent = formatPeso(resultado);
+            } else {
+                const resultado = monto / tasaCambio;
+                conversionValue.textContent = '$' + resultado.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
+            }
+        }
+
+        swapBtn.addEventListener('click', () => {
+            isUsdToArs = !isUsdToArs;
+            const labelFrom = document.getElementById('label-from');
+            const symbolFrom = document.getElementById('symbol-from');
+            
+            if (isUsdToArs) {
+                labelFrom.textContent = 'USD Dólares';
+                symbolFrom.textContent = '$';
+                conversionValue.parentElement.querySelector('.conversion-result-text').textContent = '👉 Te dan aprox:';
+            } else {
+                labelFrom.textContent = 'ARS Pesos';
+                symbolFrom.textContent = '$';
+                conversionValue.parentElement.querySelector('.conversion-result-text').textContent = '👉 Te dan aprox:';
+            }
+            
+            actualizarConversion();
+        });
+
+        // Actualizar cada 5 minutos
+        setInterval(cargarCotizaciones, 5 * 60 * 1000);
+
+        // Calcular y mostrar variaciones diarias
+        async function actualizarVariaciones() {
+            try {
+                const historico = await cargarHistorico();
+                
+                if (historico.length < 2) {
+                    console.log('⏳ Variaciones ocultas: esperando datos de ayer');
+                    return; // Necesitamos al menos 2 días
+                }
+                
+                const hoy = historico[historico.length - 1];
+                const ayer = historico[historico.length - 2];
+                
+                const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
+                
+                tipos.forEach(tipo => {
+                    const valorHoy = hoy[tipo].venta;
+                    const valorAyer = ayer[tipo].venta;
+                    const variacion = ((valorHoy - valorAyer) / valorAyer * 100).toFixed(2);
+                    
+                    const elemento = document.getElementById(`${tipo}-variacion`);
+                    if (!elemento) return;
+                    
+                    const flecha = elemento.querySelector('.variacion-flecha');
+                    const porcentaje = elemento.querySelector('.variacion-porcentaje');
+                    
+                    if (variacion > 0) {
+                        elemento.className = 'cotizacion-variacion positiva';
+                        flecha.textContent = '▲';
+                        porcentaje.textContent = `+${variacion}%`;
+                    } else if (variacion < 0) {
+                        elemento.className = 'cotizacion-variacion negativa';
+                        flecha.textContent = '▼';
+                        porcentaje.textContent = `${variacion}%`;
+                    } else {
+                        elemento.className = 'cotizacion-variacion neutral';
+                        flecha.textContent = '━';
+                        porcentaje.textContent = '0.00%';
+                    }
+                    
+                    elemento.style.display = 'flex';
+                });
+                
+                console.log('✅ Variaciones actualizadas');
+            } catch (error) {
+                console.error('Error al actualizar variaciones:', error);
+            }
+        }
+
+        // Crear mini sparklines
+        async function crearSparklines() {
+            try {
+                const historico = await cargarHistorico();
+                
+                if (historico.length < 2) {
+                    console.log('⏳ Sparklines ocultos: esperando más datos');
+                    return;
+                }
+                
+                const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
+                
+                tipos.forEach(tipo => {
+                    const canvas = document.getElementById(`${tipo}-sparkline`);
+                    if (!canvas) return;
+                    
+                    // Destruir chart anterior si existe
+                    const existingChart = Chart.getChart(canvas);
+                    if (existingChart) {
+                        existingChart.destroy();
+                    }
+                    
+                    const datos = historico.map(dia => dia[tipo].venta);
+                    const ultimoValor = datos[datos.length - 1];
+                    const penultimoValor = datos[datos.length - 2];
+                    const subio = ultimoValor >= penultimoValor;
+                    
+                    new Chart(canvas, {
+                        type: 'line',
+                        data: {
+                            labels: historico.map(d => new Date(d.fecha).toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' })),
+                            datasets: [{
+                                data: datos,
+                                borderColor: subio ? 'rgba(16, 185, 129, 0.8)' : 'rgba(239, 68, 68, 0.8)',
+                                backgroundColor: function(context) {
+                                    const ctx = context.chart.ctx;
+                                    const gradient = ctx.createLinearGradient(0, 0, 0, 60);
+                                    if (subio) {
+                                        gradient.addColorStop(0, 'rgba(16, 185, 129, 0.2)');
+                                        gradient.addColorStop(1, 'rgba(16, 185, 129, 0)');
+                                    } else {
+                                        gradient.addColorStop(0, 'rgba(239, 68, 68, 0.2)');
+                                        gradient.addColorStop(1, 'rgba(239, 68, 68, 0)');
+                                    }
+                                    return gradient;
+                                },
+                                borderWidth: 2.5,
+                                tension: 0.45,
+                                fill: true,
+                                pointRadius: 0,
+                                pointHoverRadius: 3,
+                                pointHoverBackgroundColor: subio ? '#10B981' : '#EF4444',
+                                pointHoverBorderColor: '#FFFFFF',
+                                pointHoverBorderWidth: 2
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { display: false },
+                                tooltip: {
+                                    enabled: true,
+                                    backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                                    padding: 8,
+                                    displayColors: false,
+                                    callbacks: {
+                                        title: () => '',
+                                        label: function(context) {
+                                            return '$' + context.parsed.y.toLocaleString('es-AR', {
+                                                minimumFractionDigits: 2,
+                                                maximumFractionDigits: 2
+                                            });
+                                        }
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: { display: false },
+                                y: { display: false }
+                            },
+                            interaction: {
+                                intersect: false,
+                                mode: 'index'
+                            },
+                            elements: {
+                                line: {
+                                    cubicInterpolationMode: 'monotone'
+                                }
+                            }
+                        }
+                    });
+                    
+                    canvas.style.display = 'block';
+                });
+                
+                console.log('✅ Sparklines creados');
+            } catch (error) {
+                console.error('Error al crear sparklines:', error);
+            }
+        }
+
+        // Cargar histórico desde GitHub
+        async function cargarHistorico() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/LucianoGonzalez84/cuantoEsta/main/historico.json');
+                const data = await response.json();
+                return data.ultimas_cotizaciones;
+            } catch (error) {
+                console.error('Error cargando histórico:', error);
+                return [];
+            }
+        }
+
+        // Crear gráfico con datos históricos REALES
+        async function crearGraficoReal() {
+            const historico = await cargarHistorico();
+            
+            // Si no hay datos suficientes (menos de 2 días), ocultar gráfico
+            if (historico.length < 2) {
+                const chartSection = document.querySelector('.chart-section');
+                if (chartSection) chartSection.style.display = 'none';
+                console.log('📊 Gráfico oculto: esperando más datos históricos (' + historico.length + '/7 días)');
+                return;
+            }
+            
+            const ctx = document.getElementById('myChart');
+            if (!ctx) return;
+
+            const labels = [];
+            const datosBlue = [];
+            const datosOficial = [];
+
+            // Procesar cada registro del histórico
+            historico.forEach(registro => {
+                const fecha = new Date(registro.fecha);
+                labels.push(fecha.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit' }));
+                datosBlue.push(registro.blue.venta);
+                datosOficial.push(registro.oficial.venta);
+            });
+
+            console.log('📈 Creando gráfico con ' + historico.length + ' días de datos reales');
+
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Dólar Blue',
+                        data: datosBlue,
+                        borderColor: '#0EA5E9',
+                        backgroundColor: 'rgba(14, 165, 233, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#0EA5E9',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }, {
+                        label: 'Dólar Oficial',
+                        data: datosOficial,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        borderWidth: 3,
+                        tension: 0.4,
+                        fill: true,
+                        pointRadius: 4,
+                        pointBackgroundColor: '#10B981',
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: { family: "'Work Sans', sans-serif", size: 12, weight: '600' },
+                                usePointStyle: true,
+                                padding: 15
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                            padding: 12,
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': $' + context.parsed.y.toLocaleString('es-AR', {
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 2
+                                    });
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            ticks: {
+                                callback: val => '$' + val.toLocaleString('es-AR')
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Inicializar gráfico después de cargar cotizaciones
+        setTimeout(() => {
+            if (cotizaciones.blue?.venta) {
+                crearGraficoReal();
+            }
+        }, 1500);
+
+        // ==================== FUNCIONES NUEVAS V2.0 ====================
+        
+        // Actualizar banner compacto con datos del mercado
+            const cotizacionesArray = [
+                { nombre: 'Blue', valor: cotizaciones.blue.venta, variacion: cotizaciones.blue.variacion, compra: cotizaciones.blue.compra },
+                { nombre: 'Oficial', valor: cotizaciones.oficial.venta, variacion: cotizaciones.oficial.variacion, compra: cotizaciones.oficial.compra },
+                { nombre: 'MEP', valor: cotizaciones.mep.venta, variacion: cotizaciones.mep.variacion, compra: cotizaciones.mep.compra },
+                { nombre: 'CCL', valor: cotizaciones.ccl.venta, variacion: cotizaciones.ccl.variacion, compra: cotizaciones.ccl.compra },
+                { nombre: 'Tarjeta', valor: cotizaciones.tarjeta.venta, variacion: cotizaciones.tarjeta.variacion, compra: cotizaciones.tarjeta.compra },
+                { nombre: 'Cripto', valor: cotizaciones.cripto.venta, variacion: cotizaciones.cripto.variacion, compra: cotizaciones.cripto.compra }
+            ].filter(c => c.valor > 0);
+            
+            if (cotizacionesArray.length === 0) return;
+            
+            // Más barato
+            const masBarato = cotizacionesArray.reduce((min, c) => c.valor < min.valor ? c : min);
+            const elBarato = document.getElementById('dato-barato');
+            if (elBarato) {
+                elBarato.textContent = `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
+            }
+            
+            // Más caro
+            const masCaro = cotizacionesArray.reduce((max, c) => c.valor > max.valor ? c : max);
+            const elCaro = document.getElementById('dato-caro');
+            if (elCaro) {
+                elCaro.textContent = `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
+            }
+            
+            // Mayor variación
+            const conVariacion = cotizacionesArray.filter(c => c.variacion !== null && c.variacion !== undefined);
+            const elSuba = document.getElementById('dato-suba');
+            if (conVariacion.length > 0 && elSuba) {
+                const mayorVariacion = conVariacion.reduce((max, c) => 
+                    Math.abs(c.variacion) > Math.abs(max.variacion) ? c : max
+                );
+                const signo = mayorVariacion.variacion >= 0 ? '+' : '';
+                elSuba.textContent = `${mayorVariacion.nombre} ${signo}${mayorVariacion.variacion.toFixed(2)}%`;
+            } else if (elSuba) {
+                elSuba.textContent = 'Esperando datos';
+            }
+            
+            // Brecha Blue-Oficial
+            const elBrecha = document.getElementById('dato-brecha');
+            if (cotizaciones.blue.venta > 0 && cotizaciones.oficial.venta > 0 && elBrecha) {
+                const brecha = ((cotizaciones.blue.venta - cotizaciones.oficial.venta) / cotizaciones.oficial.venta) * 100;
+                elBrecha.textContent = `${brecha.toFixed(2)}%`;
+            }
+            
+            // Actualizar precios de compra en las cotizaciones
+            cotizacionesArray.forEach(cot => {
+                const cards = document.querySelectorAll('.cotizacion-card');
+                cards.forEach(card => {
+                    const nombreElement = card.querySelector('.cotizacion-nombre');
+                    if (nombreElement && nombreElement.textContent.includes(cot.nombre)) {
+                        const precioElement = card.querySelector('.cotizacion-precio');
+                        const compraElement = card.querySelector('.cotizacion-compra');
+                        
+                        if (cot.compra > 0 && compraElement) {
+                            const compraTexto = `$${cot.compra.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                            compraElement.textContent = `Compra: ${compraTexto}`;
+                            if (precioElement) {
+                                precioElement.setAttribute('data-compra', compraTexto);
+                                precioElement.setAttribute('title', `Compra: ${compraTexto} | Venta: $${cot.valor.toFixed(2)}`);
+                            }
+                        }
+                    }
+                });
+            });
+        }
+
+        
+
+        
+        // Variación semanal
+        function mostrarVariacionSemanal(historico) {
+            if (historico.length < 7) {
+                document.getElementById('variacion-semanal').style.display = 'none';
+                return;
+            }
+            
+            const hace7dias = historico[0].blue.venta;
+            const hoy = historico[historico.length - 1].blue.venta;
+            const diferencia = hoy - hace7dias;
+            const porcentaje = (diferencia / hace7dias) * 100;
+            
+            const signo = diferencia >= 0 ? '+' : '';
+            const clase = diferencia >= 0 ? 'variacion-positiva' : 'variacion-negativa';
+            
+            document.getElementById('variacion-semanal-texto').innerHTML = `
+                El Dólar Blue <span class="variacion-semanal-cambio ${clase}">${diferencia >= 0 ? 'subió' : 'bajó'} 
+                $${Math.abs(diferencia).toFixed(2)} (${signo}${porcentaje.toFixed(2)}%)</span> en los últimos 7 días.
+                <br><span style="font-size: 0.875rem;">Hace 7 días: $${hace7dias.toFixed(2)} → Hoy: $${hoy.toFixed(2)}</span>
+            `;
+            
+            document.getElementById('variacion-semanal').style.display = 'block';
+        }
+
+        // Tiempo relativo
+        function actualizarTiempoRelativo() {
+            const ahora = new Date();
+            const ultimaAct = new Date(ultimaActualizacion);
+            const diff = Math.floor((ahora - ultimaAct) / 1000);
+            
+            let texto = '';
+            if (diff < 60) texto = 'recién';
+            else if (diff < 120) texto = 'hace un ratito';
+            else if (diff < 300) texto = 'hace un toque';
+            else if (diff < 600) texto = 'hace unos minutos';
+            else if (diff < 3600) texto = `hace ${Math.floor(diff/60)} min`;
+            else if (diff < 7200) texto = 'hace una hora';
+            else texto = `hace ${Math.floor(diff/3600)} hs`;
+            
+            const el = document.getElementById('tiempo-relativo');
+            if (el) el.textContent = texto;
+        }
+
+        setInterval(actualizarTiempoRelativo, 60000);
+
+    </script>
+</body>
+</html>
