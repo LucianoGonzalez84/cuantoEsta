@@ -571,38 +571,6 @@
             line-height: 1.6;
             margin-top: 1rem;
         }
-
-        .resumen-dia {
-            background: var(--blanco);
-            border-radius: 16px;
-            padding: 1rem 1.25rem;
-            margin-bottom: 1.5rem;
-            box-shadow: var(--shadow-md);
-            border: 1px solid var(--gris-200);
-            animation: fadeInUp 0.5s ease-out;
-        }
-        
-        .resumen-title {
-            font-family: var(--font-display);
-            font-weight: 700;
-            font-size: 0.875rem;
-            color: var(--gris-700);
-            margin-bottom: 0.5rem;
-        }
-        
-        .resumen-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 0.75rem 1rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-        }
-        
-        .resumen-items span {
-            background: var(--gris-100);
-            padding: 0.25rem 0.5rem;
-            border-radius: 6px;
-        }
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -732,16 +700,6 @@
             <div class="update-badge">
                 <span class="pulse"></span>
                 <span>Última actualización: <span id="last-update">Cargando...</span></span>
-            </div>
-        </div>
-
-        <div class="resumen-dia" id="resumen-dia" style="display: none;">
-            <div class="resumen-title">📊 Resumen del mercado</div>
-            <div class="resumen-items">
-                <span id="resumen-barato"></span>
-                <span id="resumen-caro"></span>
-                <span id="resumen-suba"></span>
-                <span id="resumen-brecha"></span>
             </div>
         </div>
 
@@ -974,56 +932,6 @@
         // Cargar cotizaciones al inicio
         cargarCotizaciones();
 
-        function actualizarResumen() {
-            const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
-        
-            // Obtener valores actuales
-            const valores = tipos.map(tipo => ({
-                tipo,
-                valor: cotizaciones[tipo].venta
-            }));
-        
-            // Más barato y más caro
-            const barato = valores.reduce((a, b) => a.valor < b.valor ? a : b);
-            const caro = valores.reduce((a, b) => a.valor > b.valor ? a : b);
-        
-            // Mayor suba (si existe variación)
-            let mayorSuba = null;
-            tipos.forEach(tipo => {
-                const el = document.getElementById(`${tipo}-variacion`);
-                if (!el || el.style.display === 'none') return;
-        
-                const texto = el.querySelector('.variacion-porcentaje')?.textContent || '';
-                const valor = parseFloat(texto.replace('%',''));
-        
-                if (!isNaN(valor)) {
-                    if (!mayorSuba || valor > mayorSuba.valor) {
-                        mayorSuba = { tipo, valor };
-                    }
-                }
-            });
-        
-            // Brecha
-            const blue = cotizaciones.blue.venta;
-            const oficial = cotizaciones.oficial.venta;
-            const brecha = ((blue - oficial) / oficial * 100).toFixed(1);
-        
-            // Render
-            document.getElementById('resumen-barato').textContent =
-                `Más barato: ${barato.tipo} (${formatPeso(barato.valor)})`;
-        
-            document.getElementById('resumen-caro').textContent =
-                `Más caro: ${caro.tipo} (${formatPeso(caro.valor)})`;
-        
-            document.getElementById('resumen-suba').textContent =
-                mayorSuba ? `Mayor suba: ${mayorSuba.tipo} (+${mayorSuba.valor}%)` : '';
-        
-            document.getElementById('resumen-brecha').textContent =
-                `Brecha: ${brecha}%`;
-        
-            document.getElementById('resumen-dia').style.display = 'block';
-        }
-        
         async function cargarCotizaciones() {
             try {
                 const [blue, oficial, mep, ccl, tarjeta, cripto] = await Promise.all([
@@ -1047,8 +955,7 @@
                 actualizarBrecha();
                 actualizarUltimaActualizacion();
                 actualizarVariaciones(); // Nueva función
-                crearSparklines();
-                actualizarResumen();// Nueva función
+                crearSparklines(); // Nueva función
             } catch (error) {
                 console.error('Error al cargar cotizaciones:', error);
                 mostrarErrorFallback();
@@ -1089,27 +996,11 @@
             document.getElementById('brecha-porcentaje').textContent = brecha + '%';
         }
 
-        let ultimaActualizacion = new Date();
-
         function actualizarUltimaActualizacion() {
-            ultimaActualizacion = new Date();
-            actualizarTextoTiempo();
-        }
-        
-        function actualizarTextoTiempo() {
             const ahora = new Date();
-            const diffMin = Math.floor((ahora - ultimaActualizacion) / 60000);
-        
-            let texto = '';
-            if (diffMin < 1) texto = 'Hace instantes';
-            else if (diffMin === 1) texto = 'Hace 1 min';
-            else texto = `Hace ${diffMin} min`;
-        
-            document.getElementById('last-update').textContent = texto;
+            const hora = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('last-update').textContent = hora + ' hs';
         }
-        
-        // refresca cada 30s
-        setInterval(actualizarTextoTiempo, 30000);
 
         function mostrarErrorFallback() {
             document.querySelectorAll('.cotizacion-valor').forEach(el => {
