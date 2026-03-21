@@ -3,403 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com https://raw.githubusercontent.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://dolarapi.com https://raw.githubusercontent.com https://www.google-analytics.com https://analytics.google.com https://cdn.jsdelivr.net;">
-    
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-98181VFK28"></script>
-    <script>
-      window.dataLayer = window.dataLayer || [];
-      function gtag(){dataLayer.push(arguments);}
-      gtag('js', new Date());
-      gtag('config', 'G-98181VFK28');
-    </script>
-    
     <title>¿Cuánto Está el Dólar Hoy? | CuantoEsta.ar</title>
     
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💵</text></svg>">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;700;800&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
     
     <style>
         :root {
             --celeste: #0EA5E9;
-            --celeste-dark: #0284C7;
-            --celeste-light: #38BDF8;
-            --blanco: #FFFFFF;
             --verde: #10B981;
             --rojo: #EF4444;
-            --gris-50: #F8FAFC;
-            --gris-100: #F1F5F9;
-            --gris-200: #E2E8F0;
-            --gris-300: #CBD5E1;
-            --gris-700: #334155;
-            --gris-900: #0F172A;
-            --font-display: 'Sora', system-ui, sans-serif;
-            --font-body: 'Work Sans', system-ui, sans-serif;
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-            --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+            --bg: #F8FAFC;
+            --card-bg: #FFFFFF;
+            --text: #0F172A;
+            --shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
         }
         
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
-        body {
-            font-family: var(--font-body);
-            background: linear-gradient(135deg, var(--gris-50) 0%, var(--blanco) 100%);
-            color: var(--gris-900);
-            line-height: 1.6;
-            min-height: 100vh;
-            overflow-x: hidden; /* Evita el scroll horizontal */
+        body { font-family: 'Work Sans', sans-serif; background-color: var(--bg); color: var(--text); padding-bottom: 50px; }
+        header { background: white; padding: 1.5rem; border-bottom: 3px solid var(--celeste); text-align: center; margin-bottom: 2rem; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 0 15px; }
+
+        /* Grid de Tarjetas */
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem; margin-bottom: 3rem; }
+        .card { 
+            background: var(--card-bg); border-radius: 20px; padding: 1.5rem; 
+            box-shadow: var(--shadow); border: 1px solid rgba(0,0,0,0.05);
+            display: flex; flex-direction: column;
         }
+        .card-title { font-size: 0.9rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+        .card-price { font-family: 'Sora', sans-serif; font-size: 2.5rem; font-weight: 800; margin: 0.5rem 0; }
         
-        header {
-            background: var(--blanco);
-            border-bottom: 3px solid var(--celeste);
-            padding: 1.5rem 1rem;
-            box-shadow: var(--shadow-md);
-            position: sticky; top: 0; z-index: 100;
-        }
-        
-        .header-content {
-            max-width: 1200px; margin: 0 auto;
-            display: flex; align-items: center; justify-content: space-between;
-            flex-wrap: wrap; gap: 1rem;
-        }
-        
-        .logo { display: flex; align-items: center; gap: 0.75rem; text-decoration: none; }
-        .logo-icon { font-size: 2rem; }
-        .logo-text { font-family: var(--font-display); font-size: 1.75rem; font-weight: 800; color: var(--celeste); }
-        .logo-text span { color: var(--gris-900); }
-        
-        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
-        
-        /* Grids */
-        .cotizaciones-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.25rem;
-            margin-bottom: 3rem;
-        }
-        
-        .cotizacion-card {
-            background: var(--blanco);
-            border-radius: 16px;
-            padding: 1.5rem;
-            box-shadow: var(--shadow-lg);
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-            display: flex;
-            flex-direction: column;
+        /* Contenedores de Gráficos */
+        .sparkline-container { width: 100%; height: 80px; margin-top: 10px; }
+        .main-chart-container { 
+            background: white; border-radius: 24px; padding: 1.5rem; 
+            box-shadow: var(--shadow); height: 350px; margin-top: 20px;
         }
 
-        /* FIX: Contenedores para que los gráficos no rompan el layout */
-        .sparkline-wrapper {
-            width: 100% !important;
-            height: 60px !important;
-            margin-top: 1rem;
-            position: relative;
-        }
-
-        .chart-main-wrapper {
-            width: 100% !important;
-            height: 300px !important;
-            position: relative;
-            margin-top: 1rem;
-        }
-
-        .cotizacion-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
-        .cotizacion-nombre { font-family: var(--font-display); font-size: 0.875rem; font-weight: 700; color: var(--gris-700); }
-        .cotizacion-valor { font-family: var(--font-display); font-size: 2.25rem; font-weight: 800; color: var(--gris-900); }
-        
         /* Variaciones */
-        .cotizacion-variacion {
-            display: inline-flex; align-items: center; gap: 0.375rem;
-            font-size: 0.875rem; font-weight: 600; padding: 0.25rem 0.5rem;
-            border-radius: 6px; margin-top: 0.5rem;
-        }
-        .positiva { background: rgba(16, 185, 129, 0.1); color: var(--verde); }
-        .negativa { background: rgba(239, 68, 68, 0.1); color: var(--rojo); }
-        .neutral { background: var(--gris-100); color: var(--gris-700); }
+        .badge { display: inline-flex; align-items: center; padding: 4px 8px; border-radius: 8px; font-weight: 600; font-size: 0.85rem; }
+        .up { background: rgba(16, 185, 129, 0.1); color: var(--verde); }
+        .down { background: rgba(239, 68, 68, 0.1); color: var(--rojo); }
 
-        /* Conversor */
-        .conversor-section {
-            background: var(--blanco); border-radius: 20px; padding: 2rem;
-            box-shadow: var(--shadow-xl); border: 3px solid var(--celeste-light);
-            margin-bottom: 3rem;
-        }
-        .conversor-grid { display: grid; grid-template-columns: 1fr auto 1fr; gap: 1rem; align-items: center; }
-        .conversor-input {
-            width: 100%; padding: 0.75rem; font-size: 1.25rem; font-weight: 700;
-            border: 2px solid var(--gris-200); border-radius: 10px;
-        }
-        .swap-button {
-            background: var(--celeste); color: white; border: none;
-            width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
-        }
+        h2 { font-family: 'Sora', sans-serif; font-weight: 800; margin-bottom: 1.5rem; font-size: 1.75rem; }
 
-        /* Brecha */
-        .brecha-section {
-            background: var(--gris-900); color: white; border-radius: 20px;
-            padding: 2rem; text-align: center; margin-bottom: 3rem;
-        }
-        .brecha-porcentaje { font-size: 3rem; font-weight: 800; color: var(--celeste-light); }
-
-        footer { background: var(--gris-900); color: white; padding: 3rem 1rem; margin-top: 4rem; text-align: center; }
-
-        @media (max-width: 768px) {
-            .conversor-grid { grid-template-columns: 1fr; }
-            .swap-button { transform: rotate(90deg); margin: 0 auto; }
-            .cotizacion-valor { font-size: 2rem; }
+        @media (max-width: 600px) {
+            .card-price { font-size: 2rem; }
+            .main-chart-container { height: 280px; padding: 10px; }
         }
     </style>
 </head>
 <body>
-    <header>
-        <div class="header-content">
-            <a href="/" class="logo">
-                <span class="logo-icon">💵</span>
-                <h1 class="logo-text">Cuánto<span>Está</span></h1>
-            </a>
-            <div class="tagline">Sabé el dólar al toque 🇦🇷</div>
+
+<header>
+    <h1 style="font-family: 'Sora'; font-weight: 800; color: var(--celeste);">💵 Cuánto<span>Está</span></h1>
+</header>
+
+<div class="container">
+    <div class="grid" id="prices-grid">
+        <div class="card">
+            <div class="card-title">Dólar Blue</div>
+            <div class="card-price" id="blue-price">$---</div>
+            <div id="blue-var" class="badge">--%</div>
+            <div class="sparkline-container"><canvas id="blue-spark"></canvas></div>
         </div>
-    </header>
-
-    <div class="container" id="main-content">
-        <div style="text-align: center; margin-bottom: 2rem;">
-            <div style="background: var(--gris-100); padding: 0.5rem 1rem; border-radius: 20px; display: inline-block;">
-                Última actualización: <span id="last-update">Cargando...</span>
-            </div>
+        <div class="card">
+            <div class="card-title">Dólar Oficial</div>
+            <div class="card-price" id="oficial-price">$---</div>
+            <div id="oficial-var" class="badge">--%</div>
+            <div class="sparkline-container"><canvas id="oficial-spark"></canvas></div>
         </div>
-
-        <section class="cotizaciones-grid">
-            <div class="cotizacion-card">
-                <div class="cotizacion-header">
-                    <div class="cotizacion-nombre">Dólar Blue</div>
-                </div>
-                <div class="cotizacion-valor" id="blue-valor">...</div>
-                <div id="blue-variacion" class="cotizacion-variacion" style="display:none"></div>
-                <div class="sparkline-wrapper">
-                    <canvas id="blue-sparkline"></canvas>
-                </div>
-            </div>
-            <div class="cotizacion-card">
-                <div class="cotizacion-header">
-                    <div class="cotizacion-nombre">Dólar Oficial</div>
-                </div>
-                <div class="cotizacion-valor" id="oficial-valor">...</div>
-                <div id="oficial-variacion" class="cotizacion-variacion" style="display:none"></div>
-                <div class="sparkline-wrapper">
-                    <canvas id="oficial-sparkline"></canvas>
-                </div>
-            </div>
-            <div class="cotizacion-card">
-                <div class="cotizacion-header">
-                    <div class="cotizacion-nombre">Dólar MEP</div>
-                </div>
-                <div class="cotizacion-valor" id="mep-valor">...</div>
-                <div id="mep-variacion" class="cotizacion-variacion" style="display:none"></div>
-                <div class="sparkline-wrapper">
-                    <canvas id="mep-sparkline"></canvas>
-                </div>
-            </div>
-            <div class="cotizacion-card">
-                <div class="cotizacion-header">
-                    <div class="cotizacion-nombre">Dólar CCL</div>
-                </div>
-                <div class="cotizacion-valor" id="ccl-valor">...</div>
-                <div id="ccl-variacion" class="cotizacion-variacion" style="display:none"></div>
-                <div class="sparkline-wrapper">
-                    <canvas id="ccl-sparkline"></canvas>
-                </div>
-            </div>
-            <div class="cotizacion-card">
-                <div class="cotizacion-header">
-                    <div class="cotizacion-nombre">Dólar Tarjeta</div>
-                </div>
-                <div class="cotizacion-valor" id="tarjeta-valor">...</div>
-                <div id="tarjeta-variacion" class="cotizacion-variacion" style="display:none"></div>
-                <div class="sparkline-wrapper">
-                    <canvas id="tarjeta-sparkline"></canvas>
-                </div>
-            </div>
-            <div class="cotizacion-card">
-                <div class="cotizacion-header">
-                    <div class="cotizacion-nombre">Dólar Cripto</div>
-                </div>
-                <div class="cotizacion-valor" id="cripto-valor">...</div>
-                <div id="cripto-variacion" class="cotizacion-variacion" style="display:none"></div>
-                <div class="sparkline-wrapper">
-                    <canvas id="cripto-sparkline"></canvas>
-                </div>
-            </div>
-        </section>
-
-        <section class="conversor-section">
-            <h2 style="margin-bottom: 1.5rem;">🔄 Conversor</h2>
-            <div class="conversor-grid">
-                <div>
-                    <label id="label-from">USD Dólares</label>
-                    <input type="number" id="input-from" class="conversor-input" value="100">
-                </div>
-                <button class="swap-button" id="swap-btn">⇄</button>
-                <div>
-                    <label>Tipo de Dólar</label>
-                    <select id="cotizacion-select" class="conversor-input" style="background: white;">
-                        <option value="blue">Blue</option>
-                        <option value="oficial">Oficial</option>
-                        <option value="mep">MEP</option>
-                        <option value="ccl">CCL</option>
-                        <option value="tarjeta">Tarjeta</option>
-                        <option value="cripto">Cripto</option>
-                    </select>
-                </div>
-            </div>
-            <div style="margin-top: 1.5rem; padding: 1rem; background: var(--gris-50); border-radius: 10px;">
-                <div id="conversion-value" style="font-size: 2rem; font-weight: 800; color: var(--celeste);">$ 0</div>
-            </div>
-        </section>
-
-        <div class="brecha-section">
-            <h3>Brecha Cambiaria (Blue vs Oficial)</h3>
-            <div class="brecha-porcentaje" id="brecha-porcentaje">0%</div>
+        <div class="card">
+            <div class="card-title">Dólar MEP</div>
+            <div class="card-price" id="mep-price">$---</div>
+            <div id="mep-var" class="badge">--%</div>
+            <div class="sparkline-container"><canvas id="mep-spark"></canvas></div>
         </div>
-
-        <section>
-            <h2 style="margin-bottom: 1rem;">📈 Evolución 7 Días</h2>
-            <div class="chart-main-wrapper">
-                <canvas id="myChart"></canvas>
-            </div>
-        </section>
     </div>
 
-    <footer>
-        <p>© 2026 CuantoEsta.ar • Hecho con 💚 en Argentina</p>
-        <p style="font-size: 0.8rem; opacity: 0.6; margin-top: 1rem;">Datos informativos de DolarApi.com</p>
-    </footer>
+    <h2>📈 Evolución Semanal</h2>
+    <div class="main-chart-container">
+        <canvas id="mainChart"></canvas>
+    </div>
+</div>
 
-    <script>
-        let cotizaciones = { blue:0, oficial:0, mep:0, ccl:0, tarjeta:0, cripto:0 };
-        let isUsdToArs = true;
+<script>
+    // Configuración de Estilo para Chart.js
+    Chart.defaults.font.family = "'Work Sans', sans-serif";
+    Chart.defaults.color = '#94a3b8';
 
-        async function cargarDatos() {
-            try {
-                const [blue, oficial, mep, ccl, tarjeta, cripto] = await Promise.all([
-                    fetch('https://dolarapi.com/v1/dolares/blue').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/oficial').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/bolsa').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/contadoconliqui').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/tarjeta').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/cripto').then(r => r.json())
-                ]);
+    async function init() {
+        const hist = await fetch('https://raw.githubusercontent.com/LucianoGonzalez84/cuantoEsta/main/historico.json').then(r => r.json());
+        const data = hist.ultimas_cotizaciones;
+        const labels = data.map(d => new Date(d.fecha).toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'}));
 
-                cotizaciones = { blue, oficial, mep, ccl, tarjeta, cripto };
-                actualizarUI();
-                actualizarVariaciones();
-                crearSparklines();
-                crearGraficoPrincipal();
-            } catch (e) { console.error(e); }
-        }
+        // 1. Actualizar Precios y Variaciones
+        const hoy = data[data.length-1];
+        const ayer = data[data.length-2];
 
-        function format(v) { return '$' + parseFloat(v).toLocaleString('es-AR', { minimumFractionDigits: 2 }); }
+        updateCard('blue', hoy.blue.venta, ayer.blue.venta);
+        updateCard('oficial', hoy.oficial.venta, ayer.oficial.venta);
+        updateCard('mep', hoy.mep.venta, ayer.mep.venta);
 
-        function actualizarUI() {
-            document.getElementById('blue-valor').textContent = format(cotizaciones.blue.venta);
-            document.getElementById('oficial-valor').textContent = format(cotizaciones.oficial.venta);
-            document.getElementById('mep-valor').textContent = format(cotizaciones.mep.venta);
-            document.getElementById('ccl-valor').textContent = format(cotizaciones.ccl.venta);
-            document.getElementById('tarjeta-valor').textContent = format(cotizaciones.tarjeta.venta);
-            document.getElementById('cripto-valor').textContent = format(cotizaciones.cripto.venta);
-            
-            const b = ((cotizaciones.blue.venta - cotizaciones.oficial.venta) / cotizaciones.oficial.venta * 100).toFixed(1);
-            document.getElementById('brecha-porcentaje').textContent = b + '%';
-            document.getElementById('last-update').textContent = new Date().toLocaleTimeString();
-            calc();
-        }
+        // 2. Crear Sparklines (los chiquitos)
+        renderSparkline('blue-spark', data.map(d => d.blue.venta), varColor(hoy.blue.venta, ayer.blue.venta));
+        renderSparkline('oficial-spark', data.map(d => d.oficial.venta), varColor(hoy.oficial.venta, ayer.oficial.venta));
+        renderSparkline('mep-spark', data.map(d => d.mep.venta), varColor(hoy.mep.venta, ayer.mep.venta));
 
-        function calc() {
-            const monto = parseFloat(document.getElementById('input-from').value) || 0;
-            const tipo = document.getElementById('cotizacion-select').value;
-            const tasa = cotizaciones[tipo]?.venta || 0;
-            const res = isUsdToArs ? monto * tasa : monto / tasa;
-            document.getElementById('conversion-value').textContent = format(res);
-        }
+        // 3. Gráfico Principal (con onda)
+        renderMainChart('mainChart', labels, data);
+    }
 
-        document.getElementById('input-from').oninput = calc;
-        document.getElementById('cotizacion-select').onchange = calc;
-        document.getElementById('swap-btn').onclick = () => {
-            isUsdToArs = !isUsdToArs;
-            document.getElementById('label-from').textContent = isUsdToArs ? 'USD Dólares' : 'ARS Pesos';
-            calc();
-        };
+    function updateCard(id, hoy, ayer) {
+        document.getElementById(`${id}-price`).textContent = '$' + hoy.toLocaleString('es-AR');
+        const diff = ((hoy - ayer) / ayer * 100).toFixed(2);
+        const el = document.getElementById(`${id}-var`);
+        el.textContent = (diff >= 0 ? '▲ ' : '▼ ') + Math.abs(diff) + '%';
+        el.className = 'badge ' + (diff >= 0 ? 'up' : 'down');
+    }
 
-        async function cargarHistorico() {
-            try {
-                const r = await fetch('https://raw.githubusercontent.com/LucianoGonzalez84/cuantoEsta/main/historico.json');
-                const d = await r.json();
-                return d.ultimas_cotizaciones;
-            } catch (e) { return []; }
-        }
+    function varColor(h, a) { return h >= a ? '#10B981' : '#EF4444'; }
 
-        async function actualizarVariaciones() {
-            const hist = await cargarHistorico();
-            if (hist.length < 2) return;
-            const hoy = hist[hist.length-1], ayer = hist[hist.length-2];
-            ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'].forEach(t => {
-                const v = ((hoy[t].venta - ayer[t].venta) / ayer[t].venta * 100).toFixed(2);
-                const el = document.getElementById(t+'-variacion');
-                el.textContent = (v >= 0 ? '▲ ' : '▼ ') + v + '%';
-                el.className = 'cotizacion-variacion ' + (v >= 0 ? 'positiva' : 'negativa');
-                el.style.display = 'inline-flex';
-            });
-        }
-
-        async function crearSparklines() {
-            const hist = await cargarHistorico();
-            if (hist.length < 2) return;
-            ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'].forEach(t => {
-                new Chart(document.getElementById(t+'-sparkline'), {
-                    type: 'line',
-                    data: {
-                        labels: hist.map(d => d.fecha),
-                        datasets: [{ 
-                            data: hist.map(d => d[t].venta), 
-                            borderColor: '#0EA5E9', borderWidth: 2, pointRadius: 0, fill: false, tension: 0.4 
-                        }]
+    function renderSparkline(canvasId, dataset, color) {
+        new Chart(document.getElementById(canvasId), {
+            type: 'line',
+            data: {
+                labels: dataset,
+                datasets: [{
+                    data: dataset,
+                    borderColor: color,
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    fill: true,
+                    backgroundColor: (ctx) => {
+                        const gradient = ctx.chart.ctx.createLinearGradient(0, 0, 0, 80);
+                        gradient.addColorStop(0, color + '33');
+                        gradient.addColorStop(1, color + '00');
+                        return gradient;
                     },
-                    options: { 
-                        responsive: true, maintainAspectRatio: false, 
-                        plugins: { legend: { display: false } },
-                        scales: { x: { display: false }, y: { display: false } }
+                    tension: 0.4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: { legend: { display: false }, tooltip: { enabled: false } },
+                scales: { x: { display: false }, y: { display: false } }
+            }
+        });
+    }
+
+    function renderMainChart(id, labels, data) {
+        const ctx = document.getElementById(id).getContext('2d');
+        const blueGrad = ctx.createLinearGradient(0, 0, 0, 400);
+        blueGrad.addColorStop(0, '#0EA5E933');
+        blueGrad.addColorStop(1, '#0EA5E900');
+
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Dólar Blue',
+                        data: data.map(d => d.blue.venta),
+                        borderColor: '#0EA5E9',
+                        backgroundColor: blueGrad,
+                        fill: true,
+                        tension: 0.4,
+                        borderWidth: 4,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#0EA5E9',
+                        pointBorderWidth: 2,
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Dólar Oficial',
+                        data: data.map(d => d.oficial.venta),
+                        borderColor: '#10B981',
+                        tension: 0.4,
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        borderDash: [5, 5]
                     }
-                });
-            });
-        }
-
-        async function crearGraficoPrincipal() {
-            const hist = await cargarHistorico();
-            if (hist.length < 2) return;
-            new Chart(document.getElementById('myChart'), {
-                type: 'line',
-                data: {
-                    labels: hist.map(d => new Date(d.fecha).toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'})),
-                    datasets: [
-                        { label: 'Blue', data: hist.map(d => d.blue.venta), borderColor: '#0EA5E9', tension: 0.3 },
-                        { label: 'Oficial', data: hist.map(d => d.oficial.venta), borderColor: '#10B981', tension: 0.3 }
-                    ]
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top', align: 'end', labels: { boxWidth: 10, usePointStyle: true } },
+                    tooltip: {
+                        backgroundColor: '#0F172A',
+                        padding: 12,
+                        titleFont: { size: 14, weight: 'bold' },
+                        cornerRadius: 12,
+                        displayColors: false
+                    }
                 },
-                options: { 
-                    responsive: true, maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom' } }
+                scales: {
+                    y: { grid: { color: '#f1f5f9' }, ticks: { callback: v => '$' + v } },
+                    x: { grid: { display: false } }
                 }
-            });
-        }
+            }
+        });
+    }
 
-        cargarDatos();
-        setInterval(cargarDatos, 300000);
-    </script>
+    init();
+</script>
+
 </body>
 </html>
