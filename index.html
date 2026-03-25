@@ -964,9 +964,26 @@ function formatearHoraArgentina(fechaISO) {
     }
 }
 
+        function tiempoTranscurrido(fechaISO) {
+    const ahora = new Date();
+    const fecha = new Date(fechaISO);
+
+    const diffMs = ahora - fecha;
+    const diffMin = Math.floor(diffMs / 60000);
+
+    if (diffMin < 1) return 'recién';
+    if (diffMin < 60) return `hace ${diffMin} min`;
+
+    const diffHoras = Math.floor(diffMin / 60);
+    return `hace ${diffHoras} hs`;
+}
+
 function actualizarUltimaActualizacion(fechaAPI) {
     const hora = formatearHoraArgentina(fechaAPI);
-    document.getElementById('last-update').textContent = hora + ' hs';
+    const hace = tiempoTranscurrido(fechaAPI);
+
+    document.getElementById('last-update').textContent =
+        `${hora} hs (${hace})`;
 }
 
 // 🚀 NUEVO FETCH (desde tu API)
