@@ -1046,51 +1046,43 @@ async function cargarCotizaciones() {
 // 🔥 BANNER (fix mayor suba)
 function actualizarBanner() {
     const cotizacionesArray = [
-        { nombre: 'Blue', valor: cotizaciones.blue.venta },
-        { nombre: 'Oficial', valor: cotizaciones.oficial.venta },
-        { nombre: 'MEP', valor: cotizaciones.mep.venta },
-        { nombre: 'CCL', valor: cotizaciones.ccl.venta },
-        { nombre: 'Tarjeta', valor: cotizaciones.tarjeta.venta },
-        { nombre: 'Cripto', valor: cotizaciones.cripto.venta }
+        { nombre: 'Blue', valor: cotizaciones.blue.venta, variacion: cotizaciones.blue.variacion },
+        { nombre: 'Oficial', valor: cotizaciones.oficial.venta, variacion: cotizaciones.oficial.variacion },
+        { nombre: 'MEP', valor: cotizaciones.mep.venta, variacion: cotizaciones.mep.variacion },
+        { nombre: 'CCL', valor: cotizaciones.ccl.venta, variacion: cotizaciones.ccl.variacion },
+        { nombre: 'Tarjeta', valor: cotizaciones.tarjeta.venta, variacion: cotizaciones.tarjeta.variacion },
+        { nombre: 'Cripto', valor: cotizaciones.cripto.venta, variacion: cotizaciones.cripto.variacion }
     ].filter(c => c.valor > 0);
 
+    // Más barato
     const masBarato = cotizacionesArray.reduce((min, c) => c.valor < min.valor ? c : min);
-    document.getElementById('banner-barato').textContent = `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
+    document.getElementById('banner-barato').textContent =
+        `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
 
+    // Más caro
     const masCaro = cotizacionesArray.reduce((max, c) => c.valor > max.valor ? c : max);
-    document.getElementById('banner-caro').textContent = `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
+    document.getElementById('banner-caro').textContent =
+        `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
 
+    // Brecha
     if (cotizaciones.blue.venta > 0 && cotizaciones.oficial.venta > 0) {
         const brecha = ((cotizaciones.blue.venta - cotizaciones.oficial.venta) / cotizaciones.oficial.venta * 100);
         document.getElementById('banner-brecha').textContent = `${brecha.toFixed(2)}%`;
     }
 
-    cargarHistorico().then(historico => {
-        if (historico.length < 2) return;
+    // 🔥 Mayor suba EN TIEMPO REAL
+    const subas = cotizacionesArray.filter(c => c.variacion > 0);
 
-        const hoy = historico[historico.length - 1];
-        const ayer = historico[historico.length - 2];
+    if (subas.length === 0) {
+        document.getElementById('banner-suba').textContent = 'Sin subas';
+    } else {
+        const mayorSuba = subas.reduce((max, c) =>
+            c.variacion > max.variacion ? c : max
+        );
 
-        const variaciones = cotizacionesArray.map(c => {
-            const valorHoy = hoy[c.nombre.toLowerCase()].venta;
-            const valorAyer = ayer[c.nombre.toLowerCase()].venta;
-            const variacion = ((valorHoy - valorAyer) / valorAyer * 100);
-            return { nombre: c.nombre, variacion };
-        });
-
-        const subas = variaciones.filter(v => v.variacion > 0);
-
-        if (subas.length === 0) {
-            document.getElementById('banner-suba').textContent = 'Sin subas';
-        } else {
-            const mayorSuba = subas.reduce((max, v) =>
-                v.variacion > max.variacion ? v : max
-            );
-
-            document.getElementById('banner-suba').textContent =
-                `${mayorSuba.nombre} +${mayorSuba.variacion.toFixed(2)}%`;
-        }
-    });
+        document.getElementById('banner-suba').textContent =
+            `${mayorSuba.nombre} +${mayorSuba.variacion.toFixed(2)}%`;
+    }
 }
 
 // UI
