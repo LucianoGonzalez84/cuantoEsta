@@ -935,228 +935,199 @@
             </div>
         </div>
     </footer>
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
-        // Datos globales
-        let cotizaciones = {
-            blue: { compra: 0, venta: 0 },
-            oficial: { compra: 0, venta: 0 },
-            mep: { venta: 0 },
-            ccl: { venta: 0 },
-            tarjeta: { venta: 0 },
-            cripto: { venta: 0 }
-        };
-        let isUsdToArs = true;
-        // Cargar cotizaciones al inicio
-        cargarCotizaciones();
-        // Actualizar banner info
-        function actualizarBanner() {
-            const cotizacionesArray = [
-                { nombre: 'Blue', valor: cotizaciones.blue.venta },
-                { nombre: 'Oficial', valor: cotizaciones.oficial.venta },
-                { nombre: 'MEP', valor: cotizaciones.mep.venta },
-                { nombre: 'CCL', valor: cotizaciones.ccl.venta },
-                { nombre: 'Tarjeta', valor: cotizaciones.tarjeta.venta },
-                { nombre: 'Cripto', valor: cotizaciones.cripto.venta }
-            ].filter(c => c.valor > 0);
-            // Más barato
-            const masBarato = cotizacionesArray.reduce((min, c) => c.valor < min.valor ? c : min);
-            document.getElementById('banner-barato').textContent = `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
-            // Más caro
-            const masCaro = cotizacionesArray.reduce((max, c) => c.valor > max.valor ? c : max);
-            document.getElementById('banner-caro').textContent = `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
-            // Brecha
-            if (cotizaciones.blue.venta > 0 && cotizaciones.oficial.venta > 0) {
-                const brecha = ((cotizaciones.blue.venta - cotizaciones.oficial.venta) / cotizaciones.oficial.venta * 100);
-                document.getElementById('banner-brecha').textContent = `${brecha.toFixed(2)}%`;
-            }
-            // Mayor suba (desde histórico)
-            cargarHistorico().then(historico => {
-                if (historico.length < 2) return;
-                const hoy = historico[historico.length - 1];
-                const ayer = historico[historico.length - 2];
-                const variaciones = cotizacionesArray.map(c => {
-                    const valorHoy = hoy[c.nombre.toLowerCase()].venta;
-                    const valorAyer = ayer[c.nombre.toLowerCase()].venta;
-                    const variacion = ((valorHoy - valorAyer) / valorAyer * 100);
-                    return { nombre: c.nombre, variacion };
-                }).filter(v => v.variacion !== 0);
-                if (variaciones.length > 0) {
-                    const mayorVariacion = variaciones.reduce((max, v) => 
-                        Math.abs(v.variacion) > Math.abs(max.variacion) ? v : max
-                    );
-                    const signo = mayorVariacion.variacion >= 0 ? '+' : '';
-                    document.getElementById('banner-suba').textContent = `${mayorVariacion.nombre} ${signo}${mayorVariacion.variacion.toFixed(2)}%`;
-                }
-            });
-        }
-        async function cargarCotizaciones() {
-            try {
-                const [blue, oficial, mep, ccl, tarjeta, cripto] = await Promise.all([
-                    fetch('https://dolarapi.com/v1/dolares/blue').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/oficial').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/bolsa').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/contadoconliqui').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/tarjeta').then(r => r.json()),
-                    fetch('https://dolarapi.com/v1/dolares/cripto').then(r => r.json())
-                ]);
-                cotizaciones.blue = blue;
-                cotizaciones.oficial = oficial;
-                cotizaciones.mep = mep;
-                cotizaciones.ccl = ccl;
-                cotizaciones.tarjeta = tarjeta;
-                cotizaciones.cripto = cripto;
-                actualizarUI();
-                actualizarConversion();
-                actualizarBrecha();
-                actualizarBanner();
-                actualizarUltimaActualizacion();
-                actualizarVariaciones(); // Nueva función
-                 // Nueva función
-            } catch (error) {
-                console.error('Error al cargar cotizaciones:', error);
-                mostrarErrorFallback();
-            }
-        }
-        function actualizarUI() {
-            // Blue
-            document.getElementById('blue-valor').textContent = formatPeso(cotizaciones.blue.venta);
-            const blueCompra = document.getElementById('blue-compra');
-            if (blueCompra) blueCompra.textContent = formatPeso(cotizaciones.blue.compra);
-            // Oficial
-            document.getElementById('oficial-valor').textContent = formatPeso(cotizaciones.oficial.venta);
-            const oficialCompra = document.getElementById('oficial-compra');
-            if (oficialCompra) oficialCompra.textContent = formatPeso(cotizaciones.oficial.compra);
-            // MEP
-            document.getElementById('mep-valor').textContent = formatPeso(cotizaciones.mep.venta);
-            const mepCompra = document.getElementById('mep-compra');
-            if (mepCompra) mepCompra.textContent = formatPeso(cotizaciones.mep.compra);
-            // CCL
-            document.getElementById('ccl-valor').textContent = formatPeso(cotizaciones.ccl.venta);
-            const cclCompra = document.getElementById('ccl-compra');
-            if (cclCompra) cclCompra.textContent = formatPeso(cotizaciones.ccl.compra);
-            // Tarjeta
-            document.getElementById('tarjeta-valor').textContent = formatPeso(cotizaciones.tarjeta.venta);
-            const tarjetaCompra = document.getElementById('tarjeta-compra');
-            if (tarjetaCompra) tarjetaCompra.textContent = formatPeso(cotizaciones.tarjeta.compra);
-            // Cripto
-            document.getElementById('cripto-valor').textContent = formatPeso(cotizaciones.cripto.venta);
-            const criptoCompra = document.getElementById('cripto-compra');
-            if (criptoCompra) criptoCompra.textContent = formatPeso(cotizaciones.cripto.compra);
-        }
-        function formatPeso(valor) {
-            return '$' + parseFloat(valor).toLocaleString('es-AR', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
-        }
-        function actualizarBrecha() {
-            const blue = cotizaciones.blue.venta;
-            const oficial = cotizaciones.oficial.venta;
-            const brecha = ((blue - oficial) / oficial * 100).toFixed(2);
-            document.getElementById('brecha-porcentaje').textContent = brecha + '%';
-        }
-        function actualizarUltimaActualizacion() {
-            const ahora = new Date();
-            const hora = ahora.toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' });
-            document.getElementById('last-update').textContent = hora + ' hs';
-        }
-        function mostrarErrorFallback() {
-            document.querySelectorAll('.cotizacion-valor').forEach(el => {
-                el.textContent = 'Error';
-            });
-        }
-        // Conversor
-        const inputFrom = document.getElementById('input-from');
-        const cotizacionSelect = document.getElementById('cotizacion-select');
-        const swapBtn = document.getElementById('swap-btn');
-        const conversionValue = document.getElementById('conversion-value');
-        inputFrom.addEventListener('input', actualizarConversion);
-        cotizacionSelect.addEventListener('change', actualizarConversion);
-        function actualizarConversion() {
-            const monto = parseFloat(inputFrom.value) || 0;
-            const cotizacionTipo = cotizacionSelect.value;
-            const tasaCambio = cotizaciones[cotizacionTipo]?.venta || 0;
-            if (isUsdToArs) {
-                const resultado = monto * tasaCambio;
-                conversionValue.textContent = formatPeso(resultado);
-            } else {
-                const resultado = monto / tasaCambio;
-                conversionValue.textContent = '$' + resultado.toLocaleString('en-US', {
-                    minimumFractionDigits: 2,
-                    maximumFractionDigits: 2
-                });
-            }
-        }
-        swapBtn.addEventListener('click', () => {
-            isUsdToArs = !isUsdToArs;
-            const labelFrom = document.getElementById('label-from');
-            const symbolFrom = document.getElementById('symbol-from');
-            if (isUsdToArs) {
-                labelFrom.textContent = 'USD Dólares';
-                symbolFrom.textContent = '$';
-                conversionValue.parentElement.querySelector('.conversion-result-text').textContent = 'Recibís aproximadamente:';
-            } else {
-                labelFrom.textContent = 'ARS Pesos';
-                symbolFrom.textContent = '$';
-                conversionValue.parentElement.querySelector('.conversion-result-text').textContent = 'Recibís aproximadamente:';
-            }
-            actualizarConversion();
+    <script>
+let cotizaciones = {
+    blue: { compra: 0, venta: 0 },
+    oficial: { compra: 0, venta: 0 },
+    mep: { venta: 0 },
+    ccl: { venta: 0 },
+    tarjeta: { venta: 0 },
+    cripto: { venta: 0 }
+};
+
+let isUsdToArs = true;
+
+// 🕒 FORMATEO HORA ARGENTINA (desde API)
+function formatearHoraArgentina(fechaISO) {
+    try {
+        const fecha = new Date(fechaISO);
+
+        return new Intl.DateTimeFormat('es-AR', {
+            timeZone: 'America/Argentina/Buenos_Aires',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit'
+        }).format(fecha);
+
+    } catch {
+        return '--:--:--';
+    }
+}
+
+function actualizarUltimaActualizacion(fechaAPI) {
+    const hora = formatearHoraArgentina(fechaAPI);
+    document.getElementById('last-update').textContent = hora + ' hs';
+}
+
+// 🚀 NUEVO FETCH (desde tu API)
+async function cargarCotizaciones() {
+    try {
+        const data = await fetch('/api/dolares').then(r => r.json());
+
+        cotizaciones.blue = data.blue;
+        cotizaciones.oficial = data.oficial;
+        cotizaciones.mep = data.mep;
+        cotizaciones.ccl = data.ccl;
+        cotizaciones.tarjeta = data.tarjeta;
+        cotizaciones.cripto = data.cripto;
+
+        actualizarUI();
+        actualizarConversion();
+        actualizarBrecha();
+        actualizarBanner();
+        actualizarUltimaActualizacion(data.fecha);
+        actualizarVariaciones();
+
+    } catch (error) {
+        console.error('Error al cargar cotizaciones:', error);
+        mostrarErrorFallback();
+    }
+}
+
+// 🔥 BANNER (fix mayor suba)
+function actualizarBanner() {
+    const cotizacionesArray = [
+        { nombre: 'Blue', valor: cotizaciones.blue.venta },
+        { nombre: 'Oficial', valor: cotizaciones.oficial.venta },
+        { nombre: 'MEP', valor: cotizaciones.mep.venta },
+        { nombre: 'CCL', valor: cotizaciones.ccl.venta },
+        { nombre: 'Tarjeta', valor: cotizaciones.tarjeta.venta },
+        { nombre: 'Cripto', valor: cotizaciones.cripto.venta }
+    ].filter(c => c.valor > 0);
+
+    const masBarato = cotizacionesArray.reduce((min, c) => c.valor < min.valor ? c : min);
+    document.getElementById('banner-barato').textContent = `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
+
+    const masCaro = cotizacionesArray.reduce((max, c) => c.valor > max.valor ? c : max);
+    document.getElementById('banner-caro').textContent = `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
+
+    if (cotizaciones.blue.venta > 0 && cotizaciones.oficial.venta > 0) {
+        const brecha = ((cotizaciones.blue.venta - cotizaciones.oficial.venta) / cotizaciones.oficial.venta * 100);
+        document.getElementById('banner-brecha').textContent = `${brecha.toFixed(2)}%`;
+    }
+
+    cargarHistorico().then(historico => {
+        if (historico.length < 2) return;
+
+        const hoy = historico[historico.length - 1];
+        const ayer = historico[historico.length - 2];
+
+        const variaciones = cotizacionesArray.map(c => {
+            const valorHoy = hoy[c.nombre.toLowerCase()].venta;
+            const valorAyer = ayer[c.nombre.toLowerCase()].venta;
+            const variacion = ((valorHoy - valorAyer) / valorAyer * 100);
+            return { nombre: c.nombre, variacion };
         });
-        // Actualizar cada 5 minutos
-        setInterval(cargarCotizaciones, 5 * 60 * 1000);
-        // Calcular y mostrar variaciones diarias
-        async function actualizarVariaciones() {
-            try {
-                const historico = await cargarHistorico();
-                if (historico.length < 2) {
-                                        return; // Necesitamos al menos 2 días
-                }
-                const hoy = historico[historico.length - 1];
-                const ayer = historico[historico.length - 2];
-                const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
-                tipos.forEach(tipo => {
-                    const valorHoy = hoy[tipo].venta;
-                    const valorAyer = ayer[tipo].venta;
-                    const variacion = ((valorHoy - valorAyer) / valorAyer * 100).toFixed(2);
-                    const elemento = document.getElementById(`${tipo}-variacion`);
-                    if (!elemento) return;
-                    const flecha = elemento.querySelector('.variacion-flecha');
-                    const porcentaje = elemento.querySelector('.variacion-porcentaje');
-                    if (variacion > 0) {
-                        elemento.className = 'cotizacion-variacion positiva';
-                        flecha.textContent = '▲';
-                        porcentaje.textContent = `+${variacion}%`;
-                    } else if (variacion < 0) {
-                        elemento.className = 'cotizacion-variacion negativa';
-                        flecha.textContent = '▼';
-                        porcentaje.textContent = `${variacion}%`;
-                    } else {
-                        elemento.className = 'cotizacion-variacion neutral';
-                        flecha.textContent = '━';
-                        porcentaje.textContent = '0.00%';
-                    }
-                    elemento.style.display = 'flex';
-                });
-                            } catch (error) {
-                console.error('Error al actualizar variaciones:', error);
-            }
+
+        const subas = variaciones.filter(v => v.variacion > 0);
+
+        if (subas.length === 0) {
+            document.getElementById('banner-suba').textContent = 'Sin subas';
+        } else {
+            const mayorSuba = subas.reduce((max, v) =>
+                v.variacion > max.variacion ? v : max
+            );
+
+            document.getElementById('banner-suba').textContent =
+                `${mayorSuba.nombre} +${mayorSuba.variacion.toFixed(2)}%`;
         }
-        // Cargar histórico desde GitHub
-        async function cargarHistorico() {
-            try {
-                const response = await fetch('https://raw.githubusercontent.com/LucianoGonzalez84/cuantoEsta/main/historico.json');
-                const data = await response.json();
-                return data.ultimas_cotizaciones;
-            } catch (error) {
-                console.error('Error cargando histórico:', error);
-                return [];
-            }
-        }
-        // Inicializar gráfico después de cargar cotizaciones
-        setTimeout(() => {
-            if (cotizaciones.blue?.venta) {
-            }
-        }, 1500);
-    </script>
+    });
+}
+
+// UI
+function actualizarUI() {
+    document.getElementById('blue-valor').textContent = formatPeso(cotizaciones.blue.venta);
+    document.getElementById('blue-compra').textContent = formatPeso(cotizaciones.blue.compra);
+
+    document.getElementById('oficial-valor').textContent = formatPeso(cotizaciones.oficial.venta);
+    document.getElementById('oficial-compra').textContent = formatPeso(cotizaciones.oficial.compra);
+
+    document.getElementById('mep-valor').textContent = formatPeso(cotizaciones.mep.venta);
+    document.getElementById('mep-compra').textContent = formatPeso(cotizaciones.mep.compra);
+
+    document.getElementById('ccl-valor').textContent = formatPeso(cotizaciones.ccl.venta);
+    document.getElementById('ccl-compra').textContent = formatPeso(cotizaciones.ccl.compra);
+
+    document.getElementById('tarjeta-valor').textContent = formatPeso(cotizaciones.tarjeta.venta);
+    document.getElementById('tarjeta-compra').textContent = formatPeso(cotizaciones.tarjeta.compra);
+
+    document.getElementById('cripto-valor').textContent = formatPeso(cotizaciones.cripto.venta);
+    document.getElementById('cripto-compra').textContent = formatPeso(cotizaciones.cripto.compra);
+}
+
+function formatPeso(valor) {
+    return '$' + parseFloat(valor).toLocaleString('es-AR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+    });
+}
+
+function actualizarBrecha() {
+    const blue = cotizaciones.blue.venta;
+    const oficial = cotizaciones.oficial.venta;
+    const brecha = ((blue - oficial) / oficial * 100).toFixed(2);
+    document.getElementById('brecha-porcentaje').textContent = brecha + '%';
+}
+
+function mostrarErrorFallback() {
+    document.querySelectorAll('.cotizacion-valor').forEach(el => {
+        el.textContent = 'Error';
+    });
+}
+
+// Conversor
+const inputFrom = document.getElementById('input-from');
+const cotizacionSelect = document.getElementById('cotizacion-select');
+const swapBtn = document.getElementById('swap-btn');
+const conversionValue = document.getElementById('conversion-value');
+
+inputFrom.addEventListener('input', actualizarConversion);
+cotizacionSelect.addEventListener('change', actualizarConversion);
+
+function actualizarConversion() {
+    const monto = parseFloat(inputFrom.value) || 0;
+    const tipo = cotizacionSelect.value;
+    const tasa = cotizaciones[tipo]?.venta || 0;
+
+    if (isUsdToArs) {
+        conversionValue.textContent = formatPeso(monto * tasa);
+    } else {
+        conversionValue.textContent = '$' + (monto / tasa).toLocaleString('en-US', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
+}
+
+swapBtn.addEventListener('click', () => {
+    isUsdToArs = !isUsdToArs;
+    actualizarConversion();
+});
+
+// histórico
+async function cargarHistorico() {
+    try {
+        const response = await fetch('https://raw.githubusercontent.com/LucianoGonzalez84/cuantoEsta/main/historico.json');
+        const data = await response.json();
+        return data.ultimas_cotizaciones;
+    } catch {
+        return [];
+    }
+}
+
+// init
+cargarCotizaciones();
+setInterval(cargarCotizaciones, 5 * 60 * 1000);
+</script>
 </body>
 </html>
