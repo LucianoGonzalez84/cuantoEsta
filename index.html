@@ -946,7 +946,8 @@ let cotizaciones = {
 };
 
 let isUsdToArs = true;
-
+let lecturaAnterior = null;
+        
 // 🕒 FORMATEO HORA ARGENTINA (desde API)
 function formatearHoraArgentina(fechaISO) {
     try {
@@ -986,10 +987,48 @@ function actualizarUltimaActualizacion(fechaAPI) {
         `${hora} hs (${hace})`;
 }
 
+        function actualizarVariaciones() {
+    if (!lecturaAnterior) return;
+
+    const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
+
+    tipos.forEach(tipo => {
+        const actual = cotizaciones[tipo]?.venta;
+        const anterior = lecturaAnterior[tipo]?.venta;
+
+        if (!actual || !anterior) return;
+
+        const variacion = ((actual - anterior) / anterior * 100);
+
+        const elemento = document.getElementById(`${tipo}-variacion`);
+        if (!elemento) return;
+
+        const flecha = elemento.querySelector('.variacion-flecha');
+        const porcentaje = elemento.querySelector('.variacion-porcentaje');
+
+        if (variacion > 0) {
+            elemento.className = 'cotizacion-variacion positiva';
+            flecha.textContent = '▲';
+            porcentaje.textContent = `+${variacion.toFixed(2)}%`;
+        } else if (variacion < 0) {
+            elemento.className = 'cotizacion-variacion negativa';
+            flecha.textContent = '▼';
+            porcentaje.textContent = `${variacion.toFixed(2)}%`;
+        } else {
+            elemento.className = 'cotizacion-variacion neutral';
+            flecha.textContent = '━';
+            porcentaje.textContent = '0.00%';
+        }
+
+        elemento.style.display = 'flex';
+    });
+}
+
 // 🚀 NUEVO FETCH (desde tu API)
 async function cargarCotizaciones() {
     try {
         const data = await fetch('/api/dolares').then(r => r.json());
+        lecturaAnterior = JSON.parse(JSON.stringify(cotizaciones));
 
         cotizaciones.blue = data.blue;
         cotizaciones.oficial = data.oficial;
