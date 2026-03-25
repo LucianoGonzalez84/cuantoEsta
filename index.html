@@ -1094,11 +1094,9 @@ async function actualizarBanner() {
         document.getElementById('banner-brecha').textContent = `${brecha.toFixed(2)}%`;
     }
 
-    // 🔥 MAYOR SUBA DESDE HISTÓRICO
+    // 🔥 MAYOR SUBA
     try {
-        const historico = await obtenerHistorico();
-        const data = await response.json();
-        const historico = data.ultimas_cotizaciones;
+        const historico = await obtenerHistorico(); // ✅ SOLO ESTO
 
         if (!historico || historico.length < 2) {
             document.getElementById('banner-suba').textContent = 'Sin datos';
@@ -1117,10 +1115,11 @@ async function actualizarBanner() {
             if (!vActual || !vAnterior) return null;
 
             const variacion = ((vActual - vAnterior) / vAnterior * 100);
+
             return { 
-    nombre: tipo.charAt(0).toUpperCase() + tipo.slice(1),
-    variacion 
-};
+                nombre: tipo.charAt(0).toUpperCase() + tipo.slice(1),
+                variacion 
+            };
         }).filter(v => v !== null && v.variacion > 0);
 
         if (variaciones.length === 0) {
@@ -1139,7 +1138,6 @@ async function actualizarBanner() {
         console.error('Error en mayor suba:', error);
     }
 }
-
 // UI
 function actualizarUI() {
     // BLUE
