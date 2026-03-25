@@ -1158,13 +1158,11 @@ async function actualizarBanner() {
 
     // 💸 Más barato
     const masBarato = cotizacionesArray.reduce((min, c) => c.valor < min.valor ? c : min);
-    document.getElementById('banner-barato').textContent =
-        `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
+    document.getElementById('banner-barato').textContent = `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
 
     // 💰 Más caro
     const masCaro = cotizacionesArray.reduce((max, c) => c.valor > max.valor ? c : max);
-    document.getElementById('banner-caro').textContent =
-        `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
+    document.getElementById('banner-caro').textContent = `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
 
     // 📊 Brecha
     if (cotizaciones.blue.venta > 0 && cotizaciones.oficial.venta > 0) {
@@ -1172,51 +1170,58 @@ async function actualizarBanner() {
         document.getElementById('banner-brecha').textContent = `${brecha.toFixed(2)}%`;
     }
 
-    // 🔥 MAYOR SUBA
+    // 🔥 MAYOR SUBA Y BAJA
     try {
-        const historico = await obtenerHistorico(); // ✅ SOLO ESTO
+        const historico = await obtenerHistorico(); 
 
         if (!historico || historico.length < 2) {
             document.getElementById('banner-suba').textContent = 'Sin datos';
+            document.getElementById('banner-baja').textContent = 'Sin datos';
             return;
         }
 
         const actual = historico[historico.length - 1];
         const anterior = historico[historico.length - 2];
-
         const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
 
+        // --- AQUÍ ESTABA EL ERROR: Faltaba cerrar el .map() ---
         const variaciones = tipos.map(tipo => {
-            // 🔺 MAYOR SUBA
-const subas = variaciones.filter(v => v && v.variacion > 0);
+            const vActual = actual[tipo]?.venta;
+            const vAnterior = anterior[tipo]?.venta;
+            
+            if (vActual && vAnterior) {
+                return {
+                    nombre: tipo.charAt(0).toUpperCase() + tipo.slice(1),
+                    variacion: ((vActual - vAnterior) / vAnterior) * 100
+                };
+            }
+            return null;
+        }).filter(v => v !== null); // Cerramos el map y filtramos nulos
 
-let textoSuba = 'Sin subas';
-if (subas.length > 0) {
-    const mayorSuba = subas.reduce((max, v) =>
-        v.variacion > max.variacion ? v : max
-    );
-    textoSuba = `${mayorSuba.nombre} +${mayorSuba.variacion.toFixed(2)}%`;
-}
+        // 🔺 MAYOR SUBA
+        const subas = variaciones.filter(v => v.variacion > 0);
+        let textoSuba = 'Sin subas';
+        if (subas.length > 0) {
+            const mayorSuba = subas.reduce((max, v) => v.variacion > max.variacion ? v : max);
+            textoSuba = `${mayorSuba.nombre} +${mayorSuba.variacion.toFixed(2)}%`;
+        }
 
-// 🔻 MAYOR BAJA
-const bajas = variaciones.filter(v => v && v.variacion < 0);
+        // 🔻 MAYOR BAJA
+        const bajas = variaciones.filter(v => v.variacion < 0);
+        let textoBaja = 'Sin bajas';
+        if (bajas.length > 0) {
+            const mayorBaja = bajas.reduce((min, v) => v.variacion < min.variacion ? v : min);
+            textoBaja = `${mayorBaja.nombre} ${mayorBaja.variacion.toFixed(2)}%`;
+        }
 
-let textoBaja = 'Sin bajas';
-if (bajas.length > 0) {
-    const mayorBaja = bajas.reduce((min, v) =>
-        v.variacion < min.variacion ? v : min
-    );
-    textoBaja = `${mayorBaja.nombre} ${mayorBaja.variacion.toFixed(2)}%`;
-}
-
-// 📢 MOSTRAR EN EL BANNER
-document.getElementById('banner-suba').textContent = textoSuba;
-document.getElementById('banner-baja').textContent = textoBaja;
+        // 📢 MOSTRAR EN EL BANNER
+        document.getElementById('banner-suba').textContent = textoSuba;
+        document.getElementById('banner-baja').textContent = textoBaja;
 
     } catch (error) {
         console.error('Error en mayor suba:', error);
     }
-}
+} // Cerramos la función
 // UI
 function actualizarUI() {
 
