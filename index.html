@@ -480,6 +480,24 @@
             line-height: 1.6;
             margin-top: 1rem;
         }
+
+        .sube {
+    animation: flashGreen 0.8s;
+}
+
+.baja {
+    animation: flashRed 0.8s;
+}
+
+@keyframes flashGreen {
+    0% { background-color: rgba(0,255,0,0.4); }
+    100% { background-color: transparent; }
+}
+
+@keyframes flashRed {
+    0% { background-color: rgba(255,0,0,0.4); }
+    100% { background-color: transparent; }
+}
         /* Responsive */
         @media (max-width: 768px) {
             .header-content {
@@ -946,6 +964,7 @@ let cotizaciones = {
 };
 
 let isUsdToArs = true;
+        let valoresPrevios = {};
 
         let historicoCache = null;
 
@@ -1018,7 +1037,8 @@ async function mostrarVariaciones() {
             const valorActual = actual[tipo]?.venta;
             const valorAnterior = anterior[tipo]?.venta;
 
-            if (!valorActual || !valorAnterior) return;
+            if (valorActual == null || valorAnterior == null) return;
+if (valorAnterior === 0) return;
 
             const variacion = ((valorActual - valorAnterior) / valorAnterior * 100);
 
@@ -1122,7 +1142,7 @@ async function actualizarBanner() {
             const vActual = actual[tipo]?.venta;
             const vAnterior = anterior[tipo]?.venta;
 
-            if (!vActual || !vAnterior) return null;
+            if (vActual == null || vAnterior == null || vAnterior === 0) return null;
 
             const variacion = ((vActual - vAnterior) / vAnterior * 100);
 
@@ -1150,32 +1170,70 @@ async function actualizarBanner() {
 }
 // UI
 function actualizarUI() {
+
+    function actualizarElemento(id, nuevoValor, valorPrevio) {
+        const el = document.getElementById(id);
+        if (!el) return;
+
+        el.textContent = formatPeso(nuevoValor);
+
+        if (valorPrevio !== undefined) {
+            if (nuevoValor > valorPrevio) {
+                el.classList.add('sube');
+            } else if (nuevoValor < valorPrevio) {
+                el.classList.add('baja');
+            }
+
+            setTimeout(() => {
+                el.classList.remove('sube', 'baja');
+            }, 800);
+        }
+    }
+
     // BLUE
-    document.getElementById('blue-valor').textContent = formatPeso(cotizaciones.blue.venta);
-    document.getElementById('blue-compra').textContent = formatPeso(cotizaciones.blue.compra);
+    actualizarElemento('blue-valor', cotizaciones.blue.venta, valoresPrevios.blue);
+    const blueCompra = document.getElementById('blue-compra');
+    if (blueCompra) blueCompra.textContent = formatPeso(cotizaciones.blue.compra);
+    valoresPrevios.blue = cotizaciones.blue.venta;
 
     // OFICIAL
-    document.getElementById('oficial-valor').textContent = formatPeso(cotizaciones.oficial.venta);
-    document.getElementById('oficial-compra').textContent = formatPeso(cotizaciones.oficial.compra);
+    actualizarElemento('oficial-valor', cotizaciones.oficial.venta, valoresPrevios.oficial);
+    const oficialCompra = document.getElementById('oficial-compra');
+    if (oficialCompra) oficialCompra.textContent = formatPeso(cotizaciones.oficial.compra);
+    valoresPrevios.oficial = cotizaciones.oficial.venta;
 
     // MEP
-    document.getElementById('mep-valor').textContent = formatPeso(cotizaciones.mep.venta);
-    document.getElementById('mep-compra').textContent =
-        cotizaciones.mep.compra ? formatPeso(cotizaciones.mep.compra) : '-';
+    actualizarElemento('mep-valor', cotizaciones.mep.venta, valoresPrevios.mep);
+    const mepCompra = document.getElementById('mep-compra');
+    if (mepCompra) {
+        mepCompra.textContent =
+            cotizaciones.mep.compra ? formatPeso(cotizaciones.mep.compra) : '-';
+    }
+    valoresPrevios.mep = cotizaciones.mep.venta;
 
     // CCL
-    document.getElementById('ccl-valor').textContent = formatPeso(cotizaciones.ccl.venta);
-    document.getElementById('ccl-compra').textContent =
-        cotizaciones.ccl.compra ? formatPeso(cotizaciones.ccl.compra) : '-';
+    actualizarElemento('ccl-valor', cotizaciones.ccl.venta, valoresPrevios.ccl);
+    const cclCompra = document.getElementById('ccl-compra');
+    if (cclCompra) {
+        cclCompra.textContent =
+            cotizaciones.ccl.compra ? formatPeso(cotizaciones.ccl.compra) : '-';
+    }
+    valoresPrevios.ccl = cotizaciones.ccl.venta;
 
     // TARJETA
-    document.getElementById('tarjeta-valor').textContent = formatPeso(cotizaciones.tarjeta.venta);
-    document.getElementById('tarjeta-compra').textContent = formatPeso(cotizaciones.tarjeta.compra);
+    actualizarElemento('tarjeta-valor', cotizaciones.tarjeta.venta, valoresPrevios.tarjeta);
+    const tarjetaCompra = document.getElementById('tarjeta-compra');
+    if (tarjetaCompra) tarjetaCompra.textContent = formatPeso(cotizaciones.tarjeta.compra);
+    valoresPrevios.tarjeta = cotizaciones.tarjeta.venta;
 
     // CRIPTO
-    document.getElementById('cripto-valor').textContent = formatPeso(cotizaciones.cripto.venta);
-    document.getElementById('cripto-compra').textContent =
-        cotizaciones.cripto.compra ? formatPeso(cotizaciones.cripto.compra) : '-';
+    actualizarElemento('cripto-valor', cotizaciones.cripto.venta, valoresPrevios.cripto);
+    const criptoCompra = document.getElementById('cripto-compra');
+    if (criptoCompra) {
+        criptoCompra.textContent =
+            cotizaciones.cripto.compra ? formatPeso(cotizaciones.cripto.compra) : '-';
+    }
+    valoresPrevios.cripto = cotizaciones.cripto.venta;
 }
 
 function formatPeso(valor) {
