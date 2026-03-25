@@ -518,6 +518,11 @@
     0% { background-color: rgba(255,0,0,0.4); }
     100% { background-color: transparent; }
 }
+
+        .animar {
+    transform: scale(1.1);
+    transition: transform 0.2s ease;
+}
         /* Responsive */
         @media (max-width: 768px) {
             .header-content {
@@ -1049,13 +1054,22 @@ async function mostrarVariaciones() {
         if (!historico || historico.length < 2) return;
 
         const actual = historico[historico.length - 1];
-        const anterior = historico[historico.length - 2];
+
+function buscarAnteriorDistinto(tipo) {
+    for (let i = historico.length - 2; i >= 0; i--) {
+        const valor = historico[i][tipo]?.venta;
+        if (valor && valor !== actual[tipo]?.venta) {
+            return valor;
+        }
+    }
+    return null;
+}
 
         const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
 
         tipos.forEach(tipo => {
             const valorActual = actual[tipo]?.venta;
-            const valorAnterior = anterior[tipo]?.venta;
+            const valorAnterior = buscarAnteriorDistinto(tipo);
 
             if (valorActual == null || valorAnterior == null) return;
 if (valorAnterior === 0) return;
@@ -1072,10 +1086,18 @@ if (valorAnterior === 0) return;
                 elemento.className = 'cotizacion-variacion positiva';
                 flecha.textContent = '▲';
                 porcentaje.textContent = `+${variacion.toFixed(2)}%`;
+
+                // 🔥 ANIMACIÓN
+    elemento.classList.add('animar');
+    setTimeout(() => elemento.classList.remove('animar'), 500);
             } else if (variacion < 0) {
                 elemento.className = 'cotizacion-variacion negativa';
                 flecha.textContent = '▼';
                 porcentaje.textContent = `${variacion.toFixed(2)}%`;
+
+                // 🔥 ANIMACIÓN
+    elemento.classList.add('animar');
+    setTimeout(() => elemento.classList.remove('animar'), 500);
             } else {
                 elemento.className = 'cotizacion-variacion neutral';
                 flecha.textContent = '━';
