@@ -993,6 +993,16 @@ function formatearHoraArgentina(fechaISO) {
     return `hace ${diffHoras} hs`;
 }
 
+        function actualizarUltimaActualizacion(fechaISO) {
+    if (!fechaISO) return;
+
+    const hora = formatearHoraArgentina(fechaISO);
+    const hace = tiempoTranscurrido(fechaISO);
+
+    document.getElementById('last-update').textContent =
+        `${hora} hs (${hace})`;
+}
+
 async function mostrarVariaciones() {
     try {
         const historico = await obtenerHistorico();
@@ -1057,7 +1067,7 @@ async function cargarCotizaciones() {
         actualizarConversion();
         actualizarBrecha();
         actualizarBanner();
-        actualizarUltimaActualizacion(data.fecha);
+        actualizarUltimaActualizacion(data.blue.fechaActualizacion);
         mostrarVariaciones();
         
 
