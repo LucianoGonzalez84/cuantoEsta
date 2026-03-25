@@ -19,8 +19,13 @@ export default async function handler(req, res) {
 
         const data = Object.fromEntries(responses);
 
-        const fechas = Object.values(data).map(d => d.fecha);
-        const fecha = fechas.sort().reverse()[0];
+        const fechas = Object.values(data)
+    .map(d => d.fechaActualizacion)
+    .filter(Boolean);
+
+const fecha = fechas.length
+    ? fechas.sort().reverse()[0]
+    : new Date().toISOString();
 
         res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
 
