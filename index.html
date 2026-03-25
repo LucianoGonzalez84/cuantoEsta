@@ -740,10 +740,9 @@
             <span class="info-label">Más caro:</span>
             <span class="info-valor" id="banner-caro">Cargando...</span>
         </div>
-        <div class="info-item">
-            <span class="info-emoji">🔥</span>
-            <span class="info-label">Mayor suba:</span>
-            <span class="info-valor" id="banner-suba">—</span>
+        <div id="banner-baja">
+           🔥 Suba: <span id="banner-suba"></span>
+📉 Baja: <span id="banner-baja"></span>
         </div>
         <div class="info-item">
             <span class="info-emoji">📊</span>
@@ -1182,30 +1181,31 @@ async function actualizarBanner() {
         const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
 
         const variaciones = tipos.map(tipo => {
-            const vActual = actual[tipo]?.venta;
-            const vAnterior = anterior[tipo]?.venta;
+            // 🔺 MAYOR SUBA
+const subas = variaciones.filter(v => v && v.variacion > 0);
 
-            if (vActual == null || vAnterior == null || vAnterior === 0) return null;
+let textoSuba = 'Sin subas';
+if (subas.length > 0) {
+    const mayorSuba = subas.reduce((max, v) =>
+        v.variacion > max.variacion ? v : max
+    );
+    textoSuba = `${mayorSuba.nombre} +${mayorSuba.variacion.toFixed(2)}%`;
+}
 
-            const variacion = ((vActual - vAnterior) / vAnterior * 100);
+// 🔻 MAYOR BAJA
+const bajas = variaciones.filter(v => v && v.variacion < 0);
 
-            return { 
-                nombre: tipo.charAt(0).toUpperCase() + tipo.slice(1),
-                variacion 
-            };
-        }).filter(v => v !== null && v.variacion > 0);
+let textoBaja = 'Sin bajas';
+if (bajas.length > 0) {
+    const mayorBaja = bajas.reduce((min, v) =>
+        v.variacion < min.variacion ? v : min
+    );
+    textoBaja = `${mayorBaja.nombre} ${mayorBaja.variacion.toFixed(2)}%`;
+}
 
-        if (variaciones.length === 0) {
-            document.getElementById('banner-suba').textContent = 'Sin subas';
-            return;
-        }
-
-        const mayor = variaciones.reduce((max, v) =>
-            v.variacion > max.variacion ? v : max
-        );
-
-        document.getElementById('banner-suba').textContent =
-            `${mayor.nombre} +${mayor.variacion.toFixed(2)}%`;
+// 📢 MOSTRAR EN EL BANNER
+document.getElementById('banner-suba').textContent = textoSuba;
+document.getElementById('banner-baja').textContent = textoBaja;
 
     } catch (error) {
         console.error('Error en mayor suba:', error);
