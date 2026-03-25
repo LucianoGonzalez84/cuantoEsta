@@ -946,7 +946,6 @@ let cotizaciones = {
 };
 
 let isUsdToArs = true;
-let lecturaAnterior = null;
         
 // 🕒 FORMATEO HORA ARGENTINA (desde API)
 function formatearHoraArgentina(fechaISO) {
@@ -987,18 +986,11 @@ function actualizarUltimaActualizacion(fechaAPI) {
         `${hora} hs (${hace})`;
 }
 
-        function actualizarVariaciones() {
-    if (!lecturaAnterior) return;
-
+        function mostrarVariaciones() {
     const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
 
     tipos.forEach(tipo => {
-        const actual = cotizaciones[tipo]?.venta;
-        const anterior = lecturaAnterior[tipo]?.venta;
-
-        if (!actual || !anterior) return;
-
-        const variacion = ((actual - anterior) / anterior * 100);
+        const variacion = cotizaciones[tipo]?.variacion ?? 0;
 
         const elemento = document.getElementById(`${tipo}-variacion`);
         if (!elemento) return;
@@ -1028,7 +1020,7 @@ function actualizarUltimaActualizacion(fechaAPI) {
 async function cargarCotizaciones() {
     try {
         const data = await fetch('/api/dolares').then(r => r.json());
-        lecturaAnterior = JSON.parse(JSON.stringify(cotizaciones));
+        
 
         cotizaciones.blue = data.blue;
         cotizaciones.oficial = data.oficial;
@@ -1042,7 +1034,8 @@ async function cargarCotizaciones() {
         actualizarBrecha();
         actualizarBanner();
         actualizarUltimaActualizacion(data.fecha);
-        //actualizarVariaciones();
+        mostrarVariaciones();
+        
 
     } catch (error) {
         console.error('Error al cargar cotizaciones:', error);
@@ -1170,16 +1163,6 @@ swapBtn.addEventListener('click', () => {
     actualizarConversion();
 });
 
-// histórico
-async function cargarHistorico() {
-    try {
-        const response = await fetch('https://raw.githubusercontent.com/LucianoGonzalez84/cuantoEsta/main/historico.json');
-        const data = await response.json();
-        return data.ultimas_cotizaciones;
-    } catch {
-        return [];
-    }
-}
 
 // init
 cargarCotizaciones();
