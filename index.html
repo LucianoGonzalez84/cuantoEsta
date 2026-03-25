@@ -936,166 +936,134 @@
         </div>
     </footer>
     
-    <script>
+   <script>
     // 1. ESTADO GLOBAL
     let cotizaciones = {
-        blue: { compra: 0, venta: 0 },
-        oficial: { compra: 0, venta: 0 },
-        mep: { compra: 0, venta: 0 },
-        ccl: { compra: 0, venta: 0 },
-        tarjeta: { compra: 0, venta: 0 },
-        cripto: { compra: 0, venta: 0 }
+        blue: { venta: 0 },
+        oficial: { venta: 0 },
+        mep: { venta: 0 },
+        ccl: { venta: 0 },
+        tarjeta: { venta: 0 },
+        cripto: { venta: 0 }
     };
     let lecturaAnterior = null; 
-    let isUsdToArs = true;
 
-    // 2. CARGA DE DATOS (API)
+    // 2. CARGA DE DATOS
     async function cargarCotizaciones() {
         try {
-            const [blue, oficial, mep, ccl, tarjeta, cripto] = await Promise.all([
-                fetch('https://dolarapi.com/v1/dolares/blue').then(r => r.json()),
-                fetch('https://dolarapi.com/v1/dolares/oficial').then(r => r.json()),
-                fetch('https://dolarapi.com/v1/dolares/bolsa').then(r => r.json()),
-                fetch('https://dolarapi.com/v1/dolares/contadoconliqui').then(r => r.json()),
-                fetch('https://dolarapi.com/v1/dolares/tarjeta').then(r => r.json()),
-                fetch('https://dolarapi.com/v1/dolares/cripto').then(r => r.json())
+            const r = await Promise.all([
+                fetch('https://dolarapi.com/v1/dolares/blue').then(res => res.json()),
+                fetch('https://dolarapi.com/v1/dolares/oficial').then(res => res.json()),
+                fetch('https://dolarapi.com/v1/dolares/bolsa').then(res => res.json()),
+                fetch('https://dolarapi.com/v1/dolares/contadoconliqui').then(res => res.json()),
+                fetch('https://dolarapi.com/v1/dolares/tarjeta').then(res => res.json()),
+                fetch('https://dolarapi.com/v1/dolares/cripto').then(res => res.json())
             ]);
 
-            const nuevas = { blue, oficial, mep, ccl, tarjeta, cripto };
+            const nuevas = { blue: r[0], oficial: r[1], mep: r[2], ccl: r[3], tarjeta: r[4], cripto: r[5] };
 
-            // GUARDAR MEMORIA ANTERIOR: Antes de actualizar, respaldamos
+            // Guardar para comparar en 5 minutos
             if (cotizaciones.blue && cotizaciones.blue.venta > 0) {
                 lecturaAnterior = JSON.parse(JSON.stringify(cotizaciones));
             }
 
             cotizaciones = nuevas;
 
-            // EJECUTAR ACTUALIZACIONES
+            // Actualizar todo
             actualizarUI();
-            actualizarConversion();
-            actualizarBrecha();
+            actualizarCalculosEspeciales(); // Brecha y Conversor
             actualizarUltimaActualizacion();
             procesarVariacionesYBanner(); 
 
-        } catch (error) {
-            console.error('Error al cargar cotizaciones:', error);
+        } catch (e) {
+            console.error("Error cargando datos", e);
         }
     }
 
-    // 3. LÓGICA DE VARIACIONES Y BANNER
+    // 3. VARIACIONES Y BANNERS
     function procesarVariacionesYBanner() {
         const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
-        
-        if (!lecturaAnterior) {
-            // Ocultar variaciones hasta que pasen los primeros 5 min
-            document.querySelectorAll('.cotizacion-variacion').forEach(el => el.style.display = 'none');
-            // Llenado inicial del banner
-            document.getElementById('banner-barato').textContent = `Oficial $${cotizaciones.oficial.venta}`;
-            document.getElementById('banner-caro').textContent = `Tarjeta $${cotizaciones.tarjeta.venta}`;
-            document.getElementById('banner-suba').textContent = "---";
-            return;
-        }
+        let listaVariaciones = [];
 
-        let datosParaBanner = [];
-
-        tipos.forEach(tipo => {
-            const ahora = cotizaciones[tipo].venta;
-            const antes = lecturaAnterior[tipo].venta;
-            const variacion = ((ahora - antes) / antes) * 100;
-
-            datosParaBanner.push({
-                nombre: tipo.charAt(0).toUpperCase() + tipo.slice(1),
-                porc: variacion,
-                precio: ahora
-            });
-
-            // Actualizar flechitas de las cards
-            const badge = document.getElementById(`${tipo}-variacion`);
-            if (badge) {
-                const flecha = badge.querySelector('.variacion-flecha');
-                const texto = badge.querySelector('.variacion-porcentaje');
+        tipos.forEach(t => {
+            const valor = cotizaciones[t].venta;
+            
+            if (lecturaAnterior) {
+                const anterior = lecturaAnterior[t].venta;
+                const variacion = ((valor - anterior) / anterior) * 100;
                 
-                badge.className = `cotizacion-variacion ${variacion > 0 ? 'positiva' : (variacion < 0 ? 'negativa' : 'neutral')}`;
-                flecha.textContent = variacion > 0 ? '▲' : (variacion < 0 ? '▼' : '━');
-                texto.textContent = `${variacion > 0 ? '+' : ''}${variacion.toFixed(2)}%`;
-                badge.style.display = 'flex';
+                const el = document.getElementById(`${t}-variacion`);
+                if (el) {
+                    el.style.display = 'flex';
+                    el.className = `cotizacion-variacion ${variacion > 0 ? 'positiva' : (variacion < 0 ? 'negativa' : 'neutral')}`;
+                    el.querySelector('.variacion-flecha').textContent = variacion > 0 ? '▲' : (variacion < 0 ? '▼' : '━');
+                    el.querySelector('.variacion-porcentaje').textContent = `${variacion.toFixed(2)}%`;
+                }
+                listaVariaciones.push({ nombre: t, porc: variacion, precio: valor });
+            } else {
+                listaVariaciones.push({ nombre: t, porc: 0, precio: valor });
             }
         });
 
-        // BANNER: Mayor Suba (Elegir el máximo real)
-        const elQueMasSubio = datosParaBanner.reduce((max, item) => item.porc > max.porc ? item : max);
-        const bSuba = document.getElementById('banner-suba');
-        bSuba.textContent = `${elQueMasSubio.nombre} ${elQueMasSubio.porc > 0 ? '+' : ''}${elQueMasSubio.porc.toFixed(2)}%`;
-        bSuba.style.color = elQueMasSubio.porc > 0 ? 'var(--verde)' : (elQueMasSubio.porc < 0 ? 'var(--rojo)' : 'inherit');
-
-        // BANNER: Barato y Caro
-        const barato = datosParaBanner.reduce((min, item) => item.precio < min.precio ? item : min);
-        const caro = datosParaBanner.reduce((max, item) => item.precio > max.precio ? item : max);
-        document.getElementById('banner-barato').textContent = `${barato.nombre} $${barato.precio.toFixed(2)}`;
-        document.getElementById('banner-caro').textContent = `${caro.nombre} $${caro.precio.toFixed(2)}`;
-    }
-
-    // 4. ACTUALIZACIÓN VISUAL (CARDS)
-    function actualizarUI() {
-        const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
-        tipos.forEach(tipo => {
-            const v = cotizaciones[tipo].venta;
-            const c = cotizaciones[tipo].compra || 0;
-            
-            // Valor principal (Venta)
-            const elValor = document.getElementById(`${tipo}-valor`);
-            if (elValor) elValor.textContent = formatPeso(v);
-            
-            // Valor secundario (Compra)
-            const elCompra = document.getElementById(`${tipo}-compra`);
-            if (elCompra) elCompra.textContent = formatPeso(c);
-        });
-    }
-
-    // 5. UTILIDADES (Formato, Conversor, Brecha)
-    function formatPeso(valor) {
-        return new Intl.NumberFormat('es-AR', {
-            style: 'currency',
-            currency: 'ARS',
-            minimumFractionDigits: 2
-        }).format(valor);
-    }
-
-    function actualizarConversion() {
-        const input = document.getElementById('usd-amount');
-        const output = document.getElementById('ars-amount');
-        if (!input || !output || !cotizaciones.blue.venta) return;
-
-        const monto = parseFloat(input.value) || 0;
-        const tasa = cotizaciones.blue.venta;
-
-        if (isUsdToArs) {
-            output.value = (monto * tasa).toFixed(2);
-        } else {
-            output.value = (monto / tasa).toFixed(2);
+        // Banners de arriba
+        const barato = listaVariaciones.reduce((min, i) => i.precio < min.precio ? i : min);
+        const caro = listaVariaciones.reduce((max, i) => i.precio > max.precio ? i : max);
+        
+        document.getElementById('banner-barato').textContent = `${barato.nombre.toUpperCase()} $${barato.precio}`;
+        document.getElementById('banner-caro').textContent = `${caro.nombre.toUpperCase()} $${caro.precio}`;
+        
+        if (lecturaAnterior) {
+            const mayorSuba = listaVariaciones.reduce((max, i) => i.porc > max.porc ? i : max);
+            document.getElementById('banner-suba').textContent = `${mayorSuba.nombre.toUpperCase()} ${mayorSuba.porc > 0 ? '+' : ''}${mayorSuba.porc.toFixed(2)}%`;
         }
     }
 
-    function switchConversion() {
-        isUsdToArs = !isUsdToArs;
-        document.getElementById('label-usd').textContent = isUsdToArs ? 'Dólares (USD)' : 'Pesos (ARS)';
-        document.getElementById('label-ars').textContent = isUsdToArs ? 'Pesos (ARS)' : 'Dólares (USD)';
-        document.getElementById('usd-amount').value = "1";
-        actualizarConversion();
+    // 4. INTERFAZ Y CÁLCULOS (Aquí estaba el error)
+    function actualizarUI() {
+        const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
+        tipos.forEach(t => {
+            const el = document.getElementById(`${t}-valor`);
+            if (el) el.textContent = `$${cotizaciones[t].venta.toLocaleString('es-AR')}`;
+        });
     }
 
-    function actualizarBrecha() {
-        const el = document.getElementById('banner-brecha');
-        if (el && cotizaciones.blue.venta > 0 && cotizaciones.oficial.venta > 0) {
-            const brecha = ((cotizaciones.blue.venta - cotizaciones.oficial.venta) / cotizaciones.oficial.venta * 100);
-            el.textContent = `${brecha.toFixed(2)}%`;
+    function actualizarCalculosEspeciales() {
+        // Brecha
+        const blue = cotizaciones.blue.venta;
+        const oficial = cotizaciones.oficial.venta;
+        if (blue > 0 && oficial > 0) {
+            const brecha = ((blue - oficial) / oficial * 100).toFixed(2);
+            document.getElementById('brecha-porcentaje').textContent = brecha + '%';
+            document.getElementById('banner-brecha').textContent = brecha + '%';
+        }
+        actualizarConversor(); // Llamamos al conversor una vez cargados los datos
+    }
+
+    function actualizarConversor() {
+        const input = document.getElementById('input-from');
+        const select = document.getElementById('cotizacion-select');
+        const result = document.getElementById('conversion-value');
+        
+        if (!input || !select || !result) return;
+
+        const monto = parseFloat(input.value) || 0;
+        const tipoSeleccionado = select.value;
+        const precioDolar = cotizaciones[tipoSeleccionado].venta;
+
+        if (precioDolar > 0) {
+            const total = monto * precioDolar;
+            result.textContent = total.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         }
     }
 
     function actualizarUltimaActualizacion() {
-        const el = document.getElementById('fecha-actualizacion');
+        const el = document.getElementById('last-update');
         if (el) el.textContent = new Date().toLocaleTimeString();
     }
+
+    // EVENTOS DEL CONVERSOR
+    document.getElementById('input-from').addEventListener('input', actualizarConversor);
+    document.getElementById('cotizacion-select').addEventListener('change', actualizarConversor);
 
     // INICIO
     cargarCotizaciones();
