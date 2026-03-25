@@ -993,19 +993,9 @@ function formatearHoraArgentina(fechaISO) {
     return `hace ${diffHoras} hs`;
 }
 
-function actualizarUltimaActualizacion(fechaAPI) {
-    const hora = formatearHoraArgentina(fechaAPI);
-    const hace = tiempoTranscurrido(fechaAPI);
-
-    document.getElementById('last-update').textContent =
-        `${hora} hs (${hace})`;
-}
-
-        async function mostrarVariaciones() {
+async function mostrarVariaciones() {
     try {
         const historico = await obtenerHistorico();
-        const data = await response.json();
-        const historico = data.ultimas_cotizaciones;
 
         if (!historico || historico.length < 2) return;
 
