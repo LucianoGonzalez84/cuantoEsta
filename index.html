@@ -11,8 +11,10 @@
       gtag('js', new Date());
       gtag('config', 'G-98181VFK28');
     </script>
-    <title>¿Cuánto Está el Dólar Hoy? | CuantoEsta.ar - Cotización en Tiempo Real</title>
-    <meta name="description" content="Cotización del dólar en Argentina actualizada al instante. Blue, Oficial, MEP, CCL, Tarjeta y Cripto. Conversor y gráficos históricos. ¡Sabé el dólar al toque!">
+    <title>Dólar Hoy en Argentina (Blue, Oficial, MEP) | Cotización en Vivo</title>
+    <meta name="description" content="Precio del dólar hoy en Argentina en tiempo real. Cotización del dólar blue, oficial, MEP, CCL y cripto actualizada al instante.">
+    <link rel="canonical" href="https://cuantoesta.ar/">
+    <meta name="robots" content="index, follow">
     <meta name="keywords" content="dólar hoy, dólar blue, cotización dólar, dólar oficial, cuanto está el dólar, precio dólar argentina">
     <meta property="og:title" content="¿Cuánto Está el Dólar Hoy? - Cotización en Tiempo Real">
     <meta property="og:description" content="Sabé el precio del dólar al toque. Blue, Oficial, MEP, CCL y más. Actualizado cada 5 minutos.">
@@ -25,7 +27,25 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💵</text></svg>">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//dolarapi.com">
+<link rel="dns-prefetch" href="//raw.githubusercontent.com">
     <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    document.title = `Dólar Blue $${cotizaciones.blue.venta} | Hoy en Argentina`;
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FinancialService",
+  "name": "CuantoEsta.ar",
+  "url": "https://cuantoesta.ar",
+  "description": "Cotización del dólar hoy en Argentina en tiempo real",
+  "areaServed": "AR",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "ARS",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
     <style>
         :root {
             /* Colores Argentinos Modernos */
@@ -1084,6 +1104,7 @@ async function cargarCotizaciones() {
         cotizaciones.cripto = data.cripto;
 
         actualizarUI();
+        document.title = `Dólar Blue $${cotizaciones.blue.venta} | Hoy en Argentina`;
         actualizarConversion();
         actualizarBrecha();
         actualizarBanner();
