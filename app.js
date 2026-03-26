@@ -17,7 +17,7 @@
     // ========================================
     
     async function cargarCotizaciones() {
-        const loader = document.getElementById('ultima-actualizacion');
+        const loader = document.getElementById('last-update');
         console.log('🚀 Iniciando carga de cotizaciones...');
         
         try {
