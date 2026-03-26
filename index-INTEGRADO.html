@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com https://raw.githubusercontent.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://dolarapi.com https://raw.githubusercontent.com https://www.google-analytics.com https://analytics.google.com https://cdn.jsdelivr.net;">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-98181VFK28"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-98181VFK28');
+    </script>
+    <title>Dólar Hoy en Argentina (Blue, Oficial, MEP) | Cotización en Vivo</title>
+    <meta name="description"
+        content="Precio del dólar hoy en Argentina en tiempo real. Cotización del dólar blue, oficial, MEP, CCL y cripto actualizada al instante.">
+    <link rel="canonical" href="https://cuantoesta.ar/">
+    <meta name="robots" content="index, follow">
+    <meta name="keywords"
+        content="dólar hoy, dólar blue, cotización dólar, dólar oficial, cuanto está el dólar, precio dólar argentina">
+    <meta property="og:title" content="¿Cuánto Está el Dólar Hoy? - Cotización en Tiempo Real">
+    <meta property="og:description"
+        content="Sabé el precio del dólar al toque. Blue, Oficial, MEP, CCL y más. Actualizado cada 5 minutos.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://cuantoesta.ar">
+    <meta property="og:image" content="https://cuantoesta.ar/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="¿Cuánto Está el Dólar Hoy?">
+    <meta name="twitter:description"
+        content="Cotización en tiempo real. Blue, Oficial, MEP, CCL. Sabé el dólar al toque 🇦🇷">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💵</text></svg>">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="dns-prefetch" href="//dolarapi.com">
+    <link rel="dns-prefetch" href="//raw.githubusercontent.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css">
+    <script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FinancialService",
+  "name": "CuantoEsta.ar",
+  "url": "https://cuantoesta.ar",
+  "description": "Cotización del dólar hoy en Argentina en tiempo real",
+  "areaServed": "AR",
+  "offers": {
+    "@type": "Offer",
+    "priceCurrency": "ARS",
+    "availability": "https://schema.org/InStock"
+  }
+}
+</script>
+
+    <link rel="preconnect" href="https://dolarapi.com">
+    <link rel="dns-prefetch" href="https://dolarapi.com">
+</head>
+
+<body>
+    <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
+    <header>
+        <div class="header-content">
+            <a href="/" class="logo">
+                <span class="logo-icon">💵</span>
+                <h1 class="logo-text">Cuánto<span>Está</span></h1>
+            </a>
+            <div class="tagline">
+                Sabé el dólar al toque 🇦🇷
+            </div>
+        </div>
+    </header>
+    <!-- Banner Info Rápida - Responsive -->
+    <div class="info-banner">
+        <!-- Desktop: Items visibles directamente -->
+        <div class="info-desktop">
+            <div class="info-item">
+                <span class="info-emoji">💎</span>
+                <span class="info-label">Más barato:</span>
+                <span class="info-valor" id="banner-barato">Cargando...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-emoji">📈</span>
+                <span class="info-label">Más caro:</span>
+                <span class="info-valor" id="banner-caro">Cargando...</span>
+            </div>
+            <div class="info-item">
+                <span class="info-emoji">🔥</span>
+                <span class="info-label">Mayor suba:</span>
+                <span class="info-valor" id="banner-suba">—</span>
+            </div>
+            <div class="info-item">
+                <span class="info-emoji">❄️</span>
+                <span class="info-label">Mayor baja:</span>
+                <span class="info-valor" id="banner-baja">—</span>
+            </div>
+            <div class="info-item">
+                <span class="info-emoji">📊</span>
+                <span class="info-label">Brecha:</span>
+                <span class="info-valor" id="banner-brecha">—</span>
+            </div>
+        </div>
+
+        <!-- Mobile: Carrusel -->
+        <div class="info-carousel">
+            <div class="carousel-track">
+                <div class="info-item">
+                    <span class="info-emoji">💎</span>
+                    <span class="info-label">Más barato:</span>
+                    <span class="info-valor" id="banner-barato-mobile">Cargando...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-emoji">📈</span>
+                    <span class="info-label">Más caro:</span>
+                    <span class="info-valor" id="banner-caro-mobile">Cargando...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-emoji">🔥</span>
+                    <span class="info-label">Mayor suba:</span>
+                    <span class="info-valor" id="banner-suba-mobile">—</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-emoji">❄️</span>
+                    <span class="info-label">Mayor baja:</span>
+                    <span class="info-valor" id="banner-baja-mobile">—</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-emoji">📊</span>
+                    <span class="info-label">Brecha:</span>
+                    <span class="info-valor" id="banner-brecha-mobile">—</span>
+                </div>
+            </div>
+            <div class="carousel-dots">
+                <span class="dot active"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+                <span class="dot"></span>
+            </div>
+        </div>
+    </div>
+
+<div class="banner-dots" id="banner-dots"></div>
+    <div class="container" id="main-content" role="main">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div class="update-badge">
+                <span class="pulse"></span>
+                <span>Última actualización: <span id="last-update">Cargando...</span></span>
+            </div>
+        </div>
+        <section class="cotizaciones-grid" id="cotizaciones-grid" aria-label="Cotizaciones del dólar en tiempo real"
+            role="region" aria-live="polite">
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar Blue</div>
+                    <div class="cotizacion-badge popular">MÁS BUSCADO</div>
+                </div>
+                <div class="precios-row">
+                    <div class="precio-principal">
+                        <div class="precio-label">VENTA</div>
+                        <div class="cotizacion-valor" id="blue-valor">
+                            <div class="loading-skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="precio-secundario">
+                        <div class="precio-label-small">COMPRA</div>
+                        <div class="precio-valor-small" id="blue-compra">—</div>
+                    </div>
+                </div>
+                <div class="cotizacion-variacion" id="blue-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                </div>
+            </div>
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar Oficial</div>
+                    <div class="cotizacion-badge">BNA</div>
+                </div>
+                <div class="precios-row">
+                    <div class="precio-principal">
+                        <div class="precio-label">VENTA</div>
+                        <div class="cotizacion-valor" id="oficial-valor">
+                            <div class="loading-skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="precio-secundario">
+                        <div class="precio-label-small">COMPRA</div>
+                        <div class="precio-valor-small" id="oficial-compra">—</div>
+                    </div>
+                </div>
+                <div class="cotizacion-variacion" id="oficial-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                </div>
+            </div>
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar MEP</div>
+                    <div class="cotizacion-badge">BOLSA</div>
+                </div>
+                <div class="precios-row">
+                    <div class="precio-principal">
+                        <div class="precio-label">VENTA</div>
+                        <div class="cotizacion-valor" id="mep-valor">
+                            <div class="loading-skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="precio-secundario">
+                        <div class="precio-label-small">COMPRA</div>
+                        <div class="precio-valor-small" id="mep-compra">—</div>
+                    </div>
+                </div>
+                <div class="cotizacion-variacion" id="mep-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                </div>
+            </div>
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar CCL</div>
+                    <div class="cotizacion-badge">CONTADO CON LIQUI</div>
+                </div>
+                <div class="precios-row">
+                    <div class="precio-principal">
+                        <div class="precio-label">VENTA</div>
+                        <div class="cotizacion-valor" id="ccl-valor">
+                            <div class="loading-skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="precio-secundario">
+                        <div class="precio-label-small">COMPRA</div>
+                        <div class="precio-valor-small" id="ccl-compra">—</div>
+                    </div>
+                </div>
+                <div class="cotizacion-variacion" id="ccl-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                </div>
+            </div>
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar Tarjeta</div>
+                    <div class="cotizacion-badge">OFICIAL + 60%</div>
+                </div>
+                <div class="precios-row">
+                    <div class="precio-principal">
+                        <div class="precio-label">VENTA</div>
+                        <div class="cotizacion-valor" id="tarjeta-valor">
+                            <div class="loading-skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="precio-secundario">
+                        <div class="precio-label-small">COMPRA</div>
+                        <div class="precio-valor-small" id="tarjeta-compra">—</div>
+                    </div>
+                </div>
+                <div class="cotizacion-variacion" id="tarjeta-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                </div>
+            </div>
+            <div class="cotizacion-card">
+                <div class="cotizacion-header">
+                    <div class="cotizacion-nombre">Dólar Cripto</div>
+                    <div class="cotizacion-badge">USDT</div>
+                </div>
+                <div class="precios-row">
+                    <div class="precio-principal">
+                        <div class="precio-label">VENTA</div>
+                        <div class="cotizacion-valor" id="cripto-valor">
+                            <div class="loading-skeleton"></div>
+                        </div>
+                    </div>
+                    <div class="precio-secundario">
+                        <div class="precio-label-small">COMPRA</div>
+                        <div class="precio-valor-small" id="cripto-compra">—</div>
+                    </div>
+                </div>
+                <div class="cotizacion-variacion" id="cripto-variacion" style="display: none;">
+                    <span class="variacion-flecha"></span>
+                    <span class="variacion-porcentaje"></span>
+                </div>
+            </div>
+        </section>
+        <section class="conversor-section" aria-labelledby="conversor-title">
+            <h2 class="section-title" id="conversor-title">🔄 Conversor</h2>
+            <div class="conversor-grid">
+                <div class="conversor-input-group">
+                    <label class="conversor-label" for="input-from" id="label-from">USD Dólares</label>
+                    <div class="conversor-input-wrapper">
+                        <span class="currency-symbol" id="symbol-from" aria-hidden="true">$</span>
+                        <input type="number" class="conversor-input" id="input-from" value="100" min="0" step="0.01"
+                            placeholder="0.00" aria-label="Cantidad a convertir">
+                    </div>
+                    <select class="conversor-select" id="select-from" style="display: none;">
+                        <option value="usd">USD Dólares</option>
+                        <option value="ars">ARS Pesos</option>
+                    </select>
+                </div>
+                <button class="swap-button" id="swap-btn" title="Invertir conversión"
+                    aria-label="Invertir dirección de conversión">
+                    ⇄
+                </button>
+                <div class="conversor-input-group">
+                    <label class="conversor-label" for="cotizacion-select">Cotización</label>
+                    <select class="conversor-select" id="cotizacion-select" aria-label="Seleccionar tipo de cotización">
+                        <option value="blue">Blue</option>
+                        <option value="oficial">Oficial</option>
+                        <option value="mep">MEP</option>
+                        <option value="ccl">CCL</option>
+                        <option value="tarjeta">Tarjeta</option>
+                        <option value="cripto">Cripto</option>
+                    </select>
+                </div>
+            </div>
+            <div class="conversion-result" id="conversion-result" aria-live="polite" aria-atomic="true">
+                <div class="conversion-result-text">Recibís aproximadamente:</div>
+                <div class="conversion-result-value" id="conversion-value">$ 0</div>
+            </div>
+        </section>
+        <div class="brecha-section">
+            <div class="brecha-content">
+                <div class="brecha-info">
+                    <h2>Brecha Cambiaria</h2>
+                    <p>Diferencia entre Dólar Blue y Oficial</p>
+                </div>
+                <div class="brecha-valor">
+                    <div class="brecha-porcentaje" id="brecha-porcentaje">0%</div>
+                    <div class="brecha-label">DE DIFERENCIA</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <footer>
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <h3>CuantoEsta.ar</h3>
+                    <p>Cotización del dólar en Argentina actualizada en tiempo real. Sabé el precio al toque, sin
+                        vueltas.</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Fuentes</h3>
+                    <p>
+                        <a href="https://dolarapi.com" target="_blank" rel="noopener">DolarApi.com</a><br>
+                        Los datos se actualizan automáticamente cada 5-10 minutos desde fuentes oficiales.
+                    </p>
+                </div>
+                <div class="footer-section">
+                    <h3>Contacto</h3>
+                    <p>
+                        <a href="/cdn-cgi/l/email-protection#96f5e3f7f8e2f9f3e5e2f7b8f7e4d6f1fbf7fffab8f5f9fb"><span
+                                class="__cf_email__"
+                                data-cfemail="4e2d3b2f203a212b3d3a2f602f3c0e29232f2722602d2123">[email&#160;protected]</span></a><br>
+                        ¿Sugerencias? ¿Feedback? Escribinos.
+                    </p>
+                </div>
+            </div>
+            <div class="disclaimer">
+                ⚠️ <strong>Disclaimer:</strong> Los valores mostrados son informativos y orientativos. Para operaciones
+                financieras, consultá con tu banco o casa de cambio. CuantoEsta.ar no se responsabiliza por decisiones
+                tomadas en base a esta información.
+            </div>
+            <div class="footer-bottom">
+                © 2026 CuantoEsta.ar • Hecho con 💚 en Argentina
+            </div>
+        </div>
+    </footer>
+    <script src="/app.js"></script>
+</body>
+
+</html>
