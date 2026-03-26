@@ -149,15 +149,16 @@
                 localStorage.setItem('historico_last_fetch', ahora.toString());
             }
             
-            if (!historico.ultimas_cotizaciones || historico.ultimas_cotizaciones.length < 2) return;
+            if (!historico.ultimas_cotizaciones || historico.ultimas_cotizaciones.length < 1) return;
  
-            const hoy = historico.ultimas_cotizaciones[historico.ultimas_cotizaciones.length - 1];
-            const ayer = historico.ultimas_cotizaciones[historico.ultimas_cotizaciones.length - 2];
- 
+            // USAR DATOS ACTUALES (cotizaciones) vs ÚLTIMO DÍA DEL HISTÓRICO
+            const ayer = historico.ultimas_cotizaciones[historico.ultimas_cotizaciones.length - 1];
             const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
  
             tipos.forEach(tipo => {
-                const valorHoy = hoy[tipo]?.venta;
+                // Valor ACTUAL de la API (datos de HOY)
+                const valorHoy = cotizaciones[tipo]?.venta;
+                // Valor del HISTÓRICO (último snapshot, puede ser ayer)
                 const valorAyer = ayer[tipo]?.venta;
  
                 if (valorHoy && valorAyer) {
