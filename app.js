@@ -634,12 +634,7 @@
         }
     }
 
-    swapBtn.addEventListener('click', () => {
-        isUsdToArs = !isUsdToArs;
-        actualizarConversion();
-    });
-
-
+   
     // init
     cargarCotizaciones();
     setInterval(cargarCotizaciones, 5 * 60 * 1000);

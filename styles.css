@@ -749,21 +749,22 @@ footer {
 
 /* Banner Info Rápida */
 .info-banner {
-    background: #F8FAFC;
-    border-bottom: 1px solid #E2E8F0;
-    padding: 0.625rem 1rem;
+    height: 48px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    gap: 2rem;
-    font-size: 0.8125rem;
-    color: #64748B;
+    overflow: hidden;
+}
+
+.info-track {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
 }
 
 .info-item {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
+    flex: 1;
+    text-align: center;
+    white-space: nowrap;
 }
 
 .info-emoji {
@@ -785,11 +786,6 @@ footer {
 /* ===== MOBILE CAROUSEL PRO ===== */
 @media (max-width: 768px) {
 
-    .info-banner {
-        overflow: hidden;
-        position: relative;
-    }
-
     .info-track {
         display: flex;
         transition: transform 0.4s ease;
@@ -798,11 +794,15 @@ footer {
 
     .info-item {
         min-width: 100%;
-        justify-content: center;
+        flex: 0 0 100%;
         text-align: center;
     }
 
-    /* DOTS */
+    .info-banner {
+        height: 48px; /* MISMA ALTURA QUE DESKTOP */
+        overflow: hidden;
+    }
+
     .banner-dots {
         display: flex;
         justify-content: center;
@@ -813,14 +813,12 @@ footer {
     .banner-dot {
         width: 6px;
         height: 6px;
-        background: #CBD5E1;
         border-radius: 50%;
-        transition: all 0.3s;
+        background: #ccc;
     }
 
     .banner-dot.active {
-        background: var(--celeste);
-        transform: scale(1.4);
+        background: #0EA5E9;
     }
 }
 
