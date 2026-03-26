@@ -49,6 +49,9 @@
             console.log('✅ Actualizando UI...');
             actualizarUI();
             console.log('✅ UI actualizada');
+            
+            // Actualizar banner DESPUÉS de tener datos
+            await actualizarBanner();
  
             // Timestamp
             if (loader) {
@@ -57,7 +60,7 @@
                     hour: '2-digit', 
                     minute: '2-digit' 
                 });
-                loader.textContent = `Última actualización: ${hora} (hace 0 min)`;
+                loader.textContent = `${hora} (hace 0 min)`;
                 loader.style.display = 'flex';
             }
  
@@ -75,7 +78,7 @@
                     if (loader) {
                         const fecha = new Date(timestamp);
                         const hace = Math.floor((Date.now() - fecha.getTime()) / 60000);
-                        loader.textContent = `Última actualización: hace ${hace} min`;
+                        loader.textContent = `hace ${hace} min`;
                     }
                 }
             } catch (cacheError) {
@@ -203,6 +206,8 @@
     // ========================================
     
     async function actualizarBanner() {
+        console.log('📊 Actualizando banner...', cotizaciones);
+        
         const cotizacionesArray = [
             { nombre: 'Blue', valor: cotizaciones.blue.venta },
             { nombre: 'Oficial', valor: cotizaciones.oficial.venta },
