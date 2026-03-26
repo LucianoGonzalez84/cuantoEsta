@@ -180,16 +180,18 @@
         const porcentaje = elem.querySelector('.variacion-porcentaje');
  
         if (variacion > 0) {
+            // SUBE = ROJO (malo)
             flecha.textContent = '▲';
-            porcentaje.textContent = `+${variacion.toFixed(2)}%`;
-            elem.className = 'cotizacion-variacion positivo';
+            porcentaje.textContent = `+${variacion.toFixed(2)}% vs ayer`;
+            elem.className = 'cotizacion-variacion negativo'; // Rojo
         } else if (variacion < 0) {
+            // BAJA = VERDE (bueno)
             flecha.textContent = '▼';
-            porcentaje.textContent = `${variacion.toFixed(2)}%`;
-            elem.className = 'cotizacion-variacion negativo';
+            porcentaje.textContent = `${variacion.toFixed(2)}% vs ayer`;
+            elem.className = 'cotizacion-variacion positivo'; // Verde
         } else {
             flecha.textContent = '—';
-            porcentaje.textContent = '0.00%';
+            porcentaje.textContent = '0.00% vs ayer';
             elem.className = 'cotizacion-variacion neutro';
         }
  
