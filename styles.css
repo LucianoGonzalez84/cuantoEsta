@@ -60,6 +60,35 @@ header {
     }
 }
 
+/* 🔹 Animación suave */
+.anim-suave {
+    transition: all 0.3s ease;
+    transform: scale(1.03);
+}
+
+/* 🔸 Animación media */
+.anim-media {
+    transition: all 0.3s ease;
+    transform: scale(1.06);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 🔥 Animación fuerte */
+.anim-fuerte {
+    animation: flashImpact 0.6s ease;
+    transform: scale(1.1);
+}
+
+@keyframes flashImpact {
+    0% {
+        filter: brightness(1.8);
+    }
+
+    100% {
+        filter: brightness(1);
+    }
+}
+
 .header-content {
     max-width: 1200px;
     margin: 0 auto;
@@ -214,15 +243,18 @@ header {
     margin-top: 0.5rem;
 }
 
-.cotizacion-variacion.positiva {
-    color: var(--verde);
-}
-
-.cotizacion-variacion.negativa {
+.cotizacion-variacion.sube {
+    background: rgba(239, 68, 68, 0.1);
     color: var(--rojo);
 }
 
-.cotizacion-variacion.neutral {
+.cotizacion-variacion.baja {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--verde);
+}
+
+.cotizacion-variacion.neutro {
+    background: var(--gris-100);
     color: #475569;
 }
 
@@ -750,20 +782,45 @@ footer {
     font-size: 0.875rem;
 }
 
+/* ===== MOBILE CAROUSEL PRO ===== */
 @media (max-width: 768px) {
+
     .info-banner {
-        flex-wrap: wrap;
-        gap: 0.5rem 1.5rem;
-        padding: 0.75rem 1rem;
-        font-size: 0.75rem;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .info-track {
+        display: flex;
+        transition: transform 0.4s ease;
+        width: 100%;
     }
 
     .info-item {
-        flex: 0 0 calc(50% - 0.75rem);
+        min-width: 100%;
+        justify-content: center;
+        text-align: center;
     }
 
-    .info-valor {
-        font-size: 0.8125rem;
+    /* DOTS */
+    .banner-dots {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 6px;
+    }
+
+    .banner-dot {
+        width: 6px;
+        height: 6px;
+        background: #CBD5E1;
+        border-radius: 50%;
+        transition: all 0.3s;
+    }
+
+    .banner-dot.active {
+        background: var(--celeste);
+        transform: scale(1.4);
     }
 }
 
@@ -779,4 +836,3 @@ footer {
     white-space: nowrap;
     border-width: 0;
 }
-

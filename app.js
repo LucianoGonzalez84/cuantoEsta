@@ -13,8 +13,64 @@
 
     let isUsdToArs = true;
     let valoresPrevios = {};
+    let bannerInicializado = false;
+    let bannerInterval = null;
 
     let historicoCache = null;
+
+    const HASH_KEY = 'cotizaciones_hash';
+
+    function generarHash(data) {
+        return JSON.stringify(data);
+    }
+
+    function guardarHash(hash) {
+        localStorage.setItem(HASH_KEY, hash);
+    }
+
+    function obtenerHash() {
+        return localStorage.getItem(HASH_KEY);
+    }
+
+    const STORAGE_KEY = 'cotizaciones_historial';
+
+    function guardarEnLocalStorage(data) {
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                data,
+                timestamp: new Date().toISOString()
+            }));
+        } catch (e) {
+            console.warn('No se pudo guardar en localStorage');
+        }
+    }
+
+    function obtenerDeLocalStorage() {
+        try {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if (!raw) return null;
+            return JSON.parse(raw);
+        } catch {
+            return null;
+        }
+    }
+
+    function usarFallbackLocal() {
+        const guardado = obtenerDeLocalStorage();
+
+        if (!guardado) {
+            mostrarErrorFallback();
+            return;
+        }
+
+        cotizaciones = guardado.data;
+
+        actualizarUI();
+        actualizarConversion();
+        actualizarBrecha();
+
+        console.warn('Usando datos offline');
+    }
 
     async function obtenerHistorico() {
         if (historicoCache) return historicoCache;
@@ -106,23 +162,26 @@
                 const porcentaje = elemento.querySelector('.variacion-porcentaje');
 
                 if (variacion > 0) {
-                    elemento.className = 'cotizacion-variacion positiva';
+                    // 🔴 SUBE (rojo)
+                    elemento.className = 'cotizacion-variacion sube';
                     flecha.textContent = '▲';
                     porcentaje.textContent = `+${variacion.toFixed(2)}%`;
 
-                    // 🔥 ANIMACIÓN
                     elemento.classList.add('animar');
                     setTimeout(() => elemento.classList.remove('animar'), 500);
+
                 } else if (variacion < 0) {
-                    elemento.className = 'cotizacion-variacion negativa';
+                    // 🟢 BAJA (verde)
+                    elemento.className = 'cotizacion-variacion baja';
                     flecha.textContent = '▼';
                     porcentaje.textContent = `${variacion.toFixed(2)}%`;
 
-                    // 🔥 ANIMACIÓN
                     elemento.classList.add('animar');
                     setTimeout(() => elemento.classList.remove('animar'), 500);
+
                 } else {
-                    elemento.className = 'cotizacion-variacion neutral';
+                    // ⚪ NEUTRO
+                    elemento.className = 'cotizacion-variacion neutro';
                     flecha.textContent = '━';
                     porcentaje.textContent = '0.00%';
                 }
@@ -135,31 +194,115 @@
         }
     }
 
-    // 🚀 NUEVO FETCH (desde tu API)
+    let ultimaActualizacion = 0;
+
     async function cargarCotizaciones() {
         try {
-            const data = await fetch('/api/dolares').then(r => r.json());
+            const ahora = Date.now();
 
+            // ⛔ Evitar fetch demasiado seguido (1 min)
+            if (ahora - ultimaActualizacion < 60000) {
+                console.log('⏳ Esperando próximo fetch...');
+                return;
+            }
 
-            cotizaciones.blue = data.blue;
-            cotizaciones.oficial = data.oficial;
-            cotizaciones.mep = data.mep;
-            cotizaciones.ccl = data.ccl;
-            cotizaciones.tarjeta = data.tarjeta;
-            cotizaciones.cripto = data.cripto;
+            ultimaActualizacion = ahora;
 
-            actualizarUI();
-            document.title = `Dólar Blue $${cotizaciones.blue.venta} | Hoy en Argentina`;
+            const response = await fetch('/api/dolares');
+
+            if (!response.ok) throw new Error('Error HTTP');
+
+            const data = await response.json();
+
+            const nuevasCotizaciones = {
+                blue: data.blue,
+                oficial: data.oficial,
+                mep: data.mep,
+                ccl: data.ccl,
+                tarjeta: data.tarjeta,
+                cripto: data.cripto
+            };
+
+            // 🔐 HASH (ETag mental)
+            const nuevoHash = JSON.stringify(nuevasCotizaciones);
+            const hashAnterior = localStorage.getItem('cotizaciones_hash');
+
+            // 🧠 Si no cambió → no hacer nada
+            if (nuevoHash === hashAnterior) {
+                console.log('⏸️ Sin cambios, no se actualiza UI');
+                return;
+            }
+
+            console.log('🔄 Cambios detectados, actualizando UI');
+
+            // 📦 Obtener estado anterior (para animaciones)
+            let anterior = null;
+            try {
+                const raw = localStorage.getItem('cotizaciones_historial');
+                anterior = raw ? JSON.parse(raw).data : null;
+            } catch {
+                anterior = null;
+            }
+
+            // 🔄 Actualizar estado global
+            cotizaciones = nuevasCotizaciones;
+
+            // 💾 Guardar en localStorage
+            try {
+                localStorage.setItem('cotizaciones_historial', JSON.stringify({
+                    data: cotizaciones,
+                    timestamp: new Date().toISOString()
+                }));
+                localStorage.setItem('cotizaciones_hash', nuevoHash);
+            } catch (e) {
+                console.warn('No se pudo guardar en localStorage');
+            }
+
+            // 🎨 UI
+            actualizarUI(anterior);
             actualizarConversion();
             actualizarBrecha();
-            actualizarBanner();
+
+            // 🔥 IMPORTANTE → esperar banner
+            await actualizarBanner();
+
+            // 🚀 Inicializar carousel SOLO una vez (y solo en mobile)
+            if (!bannerInicializado && window.innerWidth <= 768) {
+                iniciarBannerCarousel();
+                bannerInicializado = true;
+            }
+
             actualizarUltimaActualizacion(data.blue.fechaActualizacion);
             mostrarVariaciones();
 
-
         } catch (error) {
             console.error('Error al cargar cotizaciones:', error);
-            mostrarErrorFallback();
+
+            // 🔌 Fallback offline
+            try {
+                const raw = localStorage.getItem('cotizaciones_historial');
+                if (!raw) throw new Error('Sin datos locales');
+
+                const guardado = JSON.parse(raw);
+                cotizaciones = guardado.data;
+
+                actualizarUI();
+                actualizarConversion();
+                actualizarBrecha();
+
+                // 🔥 también mostramos banner offline
+                await actualizarBanner();
+
+                if (!bannerInicializado && window.innerWidth <= 768) {
+                    iniciarBannerCarousel();
+                    bannerInicializado = true;
+                }
+
+                console.warn('⚠️ Usando datos offline');
+
+            } catch {
+                mostrarErrorFallback();
+            }
         }
     }
 
@@ -176,11 +319,13 @@
 
         // 💸 Más barato
         const masBarato = cotizacionesArray.reduce((min, c) => c.valor < min.valor ? c : min);
-        document.getElementById('banner-barato').textContent = `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
+        document.getElementById('banner-barato').textContent =
+            `${masBarato.nombre} $${masBarato.valor.toFixed(2)}`;
 
         // 💰 Más caro
         const masCaro = cotizacionesArray.reduce((max, c) => c.valor > max.valor ? c : max);
-        document.getElementById('banner-caro').textContent = `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
+        document.getElementById('banner-caro').textContent =
+            `${masCaro.nombre} $${masCaro.valor.toFixed(2)}`;
 
         // 📊 Brecha
         if (cotizaciones.blue.venta > 0 && cotizaciones.oficial.venta > 0) {
@@ -188,7 +333,7 @@
             document.getElementById('banner-brecha').textContent = `${brecha.toFixed(2)}%`;
         }
 
-        // 🔥 MAYOR SUBA Y BAJA
+        // 🔥 SUBA / BAJA
         try {
             const historico = await obtenerHistorico();
 
@@ -202,7 +347,6 @@
             const anterior = historico[historico.length - 2];
             const tipos = ['blue', 'oficial', 'mep', 'ccl', 'tarjeta', 'cripto'];
 
-            // --- AQUÍ ESTABA EL ERROR: Faltaba cerrar el .map() ---
             const variaciones = tipos.map(tipo => {
                 const vActual = actual[tipo]?.venta;
                 const vAnterior = anterior[tipo]?.venta;
@@ -214,34 +358,97 @@
                     };
                 }
                 return null;
-            }).filter(v => v !== null); // Cerramos el map y filtramos nulos
+            }).filter(Boolean);
 
-            // 🔺 MAYOR SUBA
+            // 🔺 SUBA
             const subas = variaciones.filter(v => v.variacion > 0);
             let textoSuba = 'Sin subas';
+
             if (subas.length > 0) {
                 const mayorSuba = subas.reduce((max, v) => v.variacion > max.variacion ? v : max);
                 textoSuba = `${mayorSuba.nombre} +${mayorSuba.variacion.toFixed(2)}%`;
             }
 
-            // 🔻 MAYOR BAJA
+            // 🔻 BAJA
             const bajas = variaciones.filter(v => v.variacion < 0);
             let textoBaja = 'Sin bajas';
+
             if (bajas.length > 0) {
                 const mayorBaja = bajas.reduce((min, v) => v.variacion < min.variacion ? v : min);
                 textoBaja = `${mayorBaja.nombre} ${mayorBaja.variacion.toFixed(2)}%`;
             }
 
-            // 📢 MOSTRAR EN EL BANNER
             document.getElementById('banner-suba').textContent = textoSuba;
             document.getElementById('banner-baja').textContent = textoBaja;
 
         } catch (error) {
-            console.error('Error en mayor suba:', error);
+            console.error('Error en banner:', error);
         }
-    } // Cerramos la función
+    }// Cerramos la función
+
+    function iniciarBannerCarousel() {
+        if (bannerInterval) return; // 🔒 evita múltiples intervalos
+
+        const track = document.getElementById('info-track');
+        const dotsContainer = document.getElementById('banner-dots');
+
+        if (!track || !dotsContainer) return;
+
+        const items = track.children;
+        let index = 0;
+
+        dotsContainer.innerHTML = '';
+
+        for (let i = 0; i < items.length; i++) {
+            const dot = document.createElement('div');
+            dot.classList.add('banner-dot');
+            if (i === 0) dot.classList.add('active');
+            dotsContainer.appendChild(dot);
+        }
+
+        const dots = dotsContainer.children;
+
+        function actualizarSlider() {
+            track.style.transform = `translateX(-${index * 100}%)`;
+
+            for (let i = 0; i < dots.length; i++) {
+                dots[i].classList.remove('active');
+            }
+
+            if (dots[index]) {
+                dots[index].classList.add('active');
+            }
+        }
+
+        bannerInterval = setInterval(() => {
+            index = (index + 1) % items.length;
+            actualizarSlider();
+        }, 3000);
+    }
+
+    function aplicarAnimacion(el, variacion) {
+        const abs = Math.abs(variacion);
+
+        // limpiar clases previas
+        el.classList.remove('anim-suave', 'anim-media', 'anim-fuerte');
+
+        if (abs < 0.1) return; // ruido → no animar
+
+        if (abs < 0.5) {
+            el.classList.add('anim-suave');
+        } else if (abs < 1.5) {
+            el.classList.add('anim-media');
+        } else {
+            el.classList.add('anim-fuerte');
+        }
+
+        setTimeout(() => {
+            el.classList.remove('anim-suave', 'anim-media', 'anim-fuerte');
+        }, 800);
+    }
+
     // UI
-    function actualizarUI() {
+    function actualizarUI(anterior = null) {
 
         function actualizarElemento(id, nuevoValor, valorPrevio) {
             const el = document.getElementById(id);
@@ -249,12 +456,18 @@
 
             el.textContent = formatPeso(nuevoValor);
 
-            if (valorPrevio !== undefined) {
+            // 👉 Solo animar si hay valor previo REAL
+            if (valorPrevio !== undefined && valorPrevio !== null) {
+
+                const variacion = ((nuevoValor - valorPrevio) / valorPrevio) * 100;
+
                 if (nuevoValor > valorPrevio) {
-                    el.classList.add('sube');
+                    el.classList.add('sube'); // 🔴
                 } else if (nuevoValor < valorPrevio) {
-                    el.classList.add('baja');
+                    el.classList.add('baja'); // 🟢
                 }
+
+                aplicarAnimacion(el, variacion);
 
                 setTimeout(() => {
                     el.classList.remove('sube', 'baja');
@@ -262,50 +475,83 @@
             }
         }
 
-        // BLUE
-        actualizarElemento('blue-valor', cotizaciones.blue.venta, valoresPrevios.blue);
+        // 🔵 BLUE
+        actualizarElemento(
+            'blue-valor',
+            cotizaciones.blue.venta,
+            anterior?.blue?.venta
+        );
+
         const blueCompra = document.getElementById('blue-compra');
-        if (blueCompra) blueCompra.textContent = formatPeso(cotizaciones.blue.compra);
-        valoresPrevios.blue = cotizaciones.blue.venta;
+        if (blueCompra) {
+            blueCompra.textContent = formatPeso(cotizaciones.blue.compra);
+        }
 
-        // OFICIAL
-        actualizarElemento('oficial-valor', cotizaciones.oficial.venta, valoresPrevios.oficial);
+        // 🏦 OFICIAL
+        actualizarElemento(
+            'oficial-valor',
+            cotizaciones.oficial.venta,
+            anterior?.oficial?.venta
+        );
+
         const oficialCompra = document.getElementById('oficial-compra');
-        if (oficialCompra) oficialCompra.textContent = formatPeso(cotizaciones.oficial.compra);
-        valoresPrevios.oficial = cotizaciones.oficial.venta;
+        if (oficialCompra) {
+            oficialCompra.textContent = formatPeso(cotizaciones.oficial.compra);
+        }
 
-        // MEP
-        actualizarElemento('mep-valor', cotizaciones.mep.venta, valoresPrevios.mep);
+        // 💰 MEP
+        actualizarElemento(
+            'mep-valor',
+            cotizaciones.mep.venta,
+            anterior?.mep?.venta
+        );
+
         const mepCompra = document.getElementById('mep-compra');
         if (mepCompra) {
-            mepCompra.textContent =
-                cotizaciones.mep.compra ? formatPeso(cotizaciones.mep.compra) : '-';
+            mepCompra.textContent = cotizaciones.mep.compra
+                ? formatPeso(cotizaciones.mep.compra)
+                : '-';
         }
-        valoresPrevios.mep = cotizaciones.mep.venta;
 
-        // CCL
-        actualizarElemento('ccl-valor', cotizaciones.ccl.venta, valoresPrevios.ccl);
+        // 🌍 CCL
+        actualizarElemento(
+            'ccl-valor',
+            cotizaciones.ccl.venta,
+            anterior?.ccl?.venta
+        );
+
         const cclCompra = document.getElementById('ccl-compra');
         if (cclCompra) {
-            cclCompra.textContent =
-                cotizaciones.ccl.compra ? formatPeso(cotizaciones.ccl.compra) : '-';
+            cclCompra.textContent = cotizaciones.ccl.compra
+                ? formatPeso(cotizaciones.ccl.compra)
+                : '-';
         }
-        valoresPrevios.ccl = cotizaciones.ccl.venta;
 
-        // TARJETA
-        actualizarElemento('tarjeta-valor', cotizaciones.tarjeta.venta, valoresPrevios.tarjeta);
+        // 💳 TARJETA
+        actualizarElemento(
+            'tarjeta-valor',
+            cotizaciones.tarjeta.venta,
+            anterior?.tarjeta?.venta
+        );
+
         const tarjetaCompra = document.getElementById('tarjeta-compra');
-        if (tarjetaCompra) tarjetaCompra.textContent = formatPeso(cotizaciones.tarjeta.compra);
-        valoresPrevios.tarjeta = cotizaciones.tarjeta.venta;
+        if (tarjetaCompra) {
+            tarjetaCompra.textContent = formatPeso(cotizaciones.tarjeta.compra);
+        }
 
-        // CRIPTO
-        actualizarElemento('cripto-valor', cotizaciones.cripto.venta, valoresPrevios.cripto);
+        // 🪙 CRIPTO
+        actualizarElemento(
+            'cripto-valor',
+            cotizaciones.cripto.venta,
+            anterior?.cripto?.venta
+        );
+
         const criptoCompra = document.getElementById('cripto-compra');
         if (criptoCompra) {
-            criptoCompra.textContent =
-                cotizaciones.cripto.compra ? formatPeso(cotizaciones.cripto.compra) : '-';
+            criptoCompra.textContent = cotizaciones.cripto.compra
+                ? formatPeso(cotizaciones.cripto.compra)
+                : '-';
         }
-        valoresPrevios.cripto = cotizaciones.cripto.venta;
     }
 
     function formatPeso(valor) {
@@ -318,6 +564,9 @@
     function actualizarBrecha() {
         const blue = cotizaciones.blue.venta;
         const oficial = cotizaciones.oficial.venta;
+
+        if (!blue || !oficial) return;
+
         const brecha = ((blue - oficial) / oficial * 100).toFixed(2);
         document.getElementById('brecha-porcentaje').textContent = brecha + '%';
     }
@@ -334,21 +583,54 @@
     const swapBtn = document.getElementById('swap-btn');
     const conversionValue = document.getElementById('conversion-value');
 
-    inputFrom.addEventListener('input', actualizarConversion);
-    cotizacionSelect.addEventListener('change', actualizarConversion);
+    if (inputFrom && cotizacionSelect && conversionValue) {
+        inputFrom.addEventListener('input', actualizarConversion);
+        cotizacionSelect.addEventListener('change', actualizarConversion);
+    }
+
+    if (swapBtn) {
+        swapBtn.addEventListener('click', () => {
+            isUsdToArs = !isUsdToArs;
+            actualizarConversion();
+        });
+    }
 
     function actualizarConversion() {
-        const monto = parseFloat(inputFrom.value) || 0;
+        // 🔒 Guard clause: evitar errores si el DOM no está listo
+        if (!inputFrom || !cotizacionSelect || !conversionValue) return;
+
+        const monto = parseFloat(inputFrom.value);
         const tipo = cotizacionSelect.value;
-        const tasa = cotizaciones[tipo]?.venta || 0;
+        const tasa = cotizaciones[tipo]?.venta;
+
+        // 🧠 Estado: input vacío
+        if (isNaN(monto)) {
+            conversionValue.textContent = '$0,00';
+            return;
+        }
+
+        // 🧠 Estado: API aún no cargó o tasa inválida
+        if (!tasa || tasa <= 0) {
+            conversionValue.textContent = 'Cargando...';
+            return;
+        }
+
+        let resultado;
 
         if (isUsdToArs) {
-            conversionValue.textContent = formatPeso(monto * tasa);
+            // 💵 USD → ARS
+            resultado = monto * tasa;
+
+            conversionValue.textContent = formatPeso(resultado);
         } else {
-            conversionValue.textContent = '$' + (monto / tasa).toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
+            // 💸 ARS → USD
+            resultado = monto / tasa;
+
+            conversionValue.textContent =
+                '$' + resultado.toLocaleString('en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2
+                });
         }
     }
 
