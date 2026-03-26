@@ -385,3 +385,4 @@
     window.addEventListener('resize', () => setTimeout(initBannerCarousel, 250));
 
 })();
+
