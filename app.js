@@ -367,6 +367,7 @@
                 }
             });
         }
+        
  
         // Click en dots
         dots.forEach((dot, i) => {
