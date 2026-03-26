@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="es-AR">
-
+ 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy"
         content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com https://raw.githubusercontent.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://dolarapi.com https://raw.githubusercontent.com https://www.google-analytics.com https://analytics.google.com https://cdn.jsdelivr.net;">
+    
+    <!-- Google Analytics (async - no bloquea render) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-98181VFK28"></script>
     <script>
         window.dataLayer = window.dataLayer || [];
@@ -13,6 +15,7 @@
         gtag('js', new Date());
         gtag('config', 'G-98181VFK28');
     </script>
+    
     <title>Dólar Hoy en Argentina (Blue, Oficial, MEP) | Cotización en Vivo</title>
     <meta name="description"
         content="Precio del dólar hoy en Argentina en tiempo real. Cotización del dólar blue, oficial, MEP, CCL y cripto actualizada al instante.">
@@ -32,14 +35,25 @@
         content="Cotización en tiempo real. Blue, Oficial, MEP, CCL. Sabé el dólar al toque 🇦🇷">
     <link rel="icon"
         href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💵</text></svg>">
+    
+    <!-- Preconnect a dominios críticos -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="dns-prefetch" href="//dolarapi.com">
+    <link rel="preconnect" href="https://dolarapi.com">
     <link rel="dns-prefetch" href="//raw.githubusercontent.com">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap"
-        rel="stylesheet">
+    
+    <!-- Google Fonts (async - no bloquea render) -->
+    <link rel="preload" 
+          href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" 
+          as="style" 
+          onload="this.onload=null;this.rel='stylesheet'">
+    <noscript>
+        <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    </noscript>
+    
+    <!-- CSS principal -->
     <link rel="stylesheet" href="/styles.css">
+    
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -55,11 +69,8 @@
   }
 }
 </script>
-
-    <link rel="preconnect" href="https://dolarapi.com">
-    <link rel="dns-prefetch" href="https://dolarapi.com">
 </head>
-
+ 
 <body>
     <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
     <header>
@@ -329,7 +340,9 @@
             </div>
         </div>
     </footer>
-    <script src="/app.js"></script>
+    
+    <!-- JavaScript con defer (no bloquea render) -->
+    <script src="/app.js" defer></script>
 </body>
-
+ 
 </html>
