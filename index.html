@@ -1,59 +1,157 @@
 <!DOCTYPE html>
 <html lang="es-AR">
- 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com https://raw.githubusercontent.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://dolarapi.com https://raw.githubusercontent.com https://www.google-analytics.com https://analytics.google.com https://cdn.jsdelivr.net;">
     
-    <!-- Google Analytics (async - no bloquea render) -->
-    <script async src="https://www.googletagmanager.com/gtag/js?id=G-98181VFK28"></script>
-    <script>
-        window.dataLayer = window.dataLayer || [];
-        function gtag() { dataLayer.push(arguments); }
-        gtag('js', new Date());
-        gtag('config', 'G-98181VFK28');
-    </script>
-    
+    <!-- SEO -->
     <title>Dólar Hoy en Argentina (Blue, Oficial, MEP) | Cotización en Vivo</title>
-    <meta name="description"
-        content="Precio del dólar hoy en Argentina en tiempo real. Cotización del dólar blue, oficial, MEP, CCL y cripto actualizada al instante.">
+    <meta name="description" content="Precio del dólar hoy en Argentina en tiempo real. Cotización del dólar blue, oficial, MEP, CCL y cripto actualizada al instante.">
     <link rel="canonical" href="https://cuantoesta.ar/">
     <meta name="robots" content="index, follow">
-    <meta name="keywords"
-        content="dólar hoy, dólar blue, cotización dólar, dólar oficial, cuanto está el dólar, precio dólar argentina">
+    <meta name="keywords" content="dólar hoy, dólar blue, cotización dólar, dólar oficial, cuanto está el dólar, precio dólar argentina">
+    
+    <!-- Open Graph -->
     <meta property="og:title" content="¿Cuánto Está el Dólar Hoy? - Cotización en Tiempo Real">
-    <meta property="og:description"
-        content="Sabé el precio del dólar al toque. Blue, Oficial, MEP, CCL y más. Actualizado cada 5 minutos.">
+    <meta property="og:description" content="Sabé el precio del dólar al toque. Blue, Oficial, MEP, CCL y más. Actualizado cada 5 minutos.">
     <meta property="og:type" content="website">
     <meta property="og:url" content="https://cuantoesta.ar">
     <meta property="og:image" content="https://cuantoesta.ar/og-image.png">
+    
+    <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="¿Cuánto Está el Dólar Hoy?">
-    <meta name="twitter:description"
-        content="Cotización en tiempo real. Blue, Oficial, MEP, CCL. Sabé el dólar al toque 🇦🇷">
-    <link rel="icon"
-        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💵</text></svg>">
+    <meta name="twitter:description" content="Cotización en tiempo real. Blue, Oficial, MEP, CCL. Sabé el dólar al toque 🇦🇷">
     
-    <!-- Preconnect a dominios críticos -->
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💵</text></svg>">
+    
+    <!-- Preconnect a dominios críticos (DNS + TCP + TLS temprano) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preconnect" href="https://dolarapi.com">
     <link rel="dns-prefetch" href="//raw.githubusercontent.com">
+    <link rel="dns-prefetch" href="//www.googletagmanager.com">
+    
+    <!-- CRITICAL CSS INLINE (solo above-the-fold) -->
+    <style>
+        :root {
+            --celeste: #0EA5E9;
+            --celeste-dark: #0284C7;
+            --blanco: #FFFFFF;
+            --verde: #10B981;
+            --rojo: #EF4444;
+            --gris-50: #F8FAFC;
+            --gris-100: #F1F5F9;
+            --gris-900: #0F172A;
+            --font-display: 'Sora', system-ui, sans-serif;
+            --font-body: 'Work Sans', system-ui, sans-serif;
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            background: linear-gradient(135deg, var(--gris-50) 0%, var(--blanco) 100%);
+            color: var(--gris-900);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+        
+        header {
+            background: var(--blanco);
+            border-bottom: 3px solid var(--celeste);
+            padding: 1.5rem 1rem;
+            box-shadow: var(--shadow-md);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            text-decoration: none;
+        }
+        
+        .logo-icon {
+            font-size: 2rem;
+        }
+        
+        .logo-text {
+            font-family: var(--font-display);
+            font-size: 1.75rem;
+            font-weight: 800;
+            color: var(--celeste);
+        }
+        
+        .logo-text span {
+            color: var(--gris-900);
+        }
+        
+        .tagline {
+            font-size: 0.875rem;
+            color: #475569;
+            font-weight: 500;
+        }
+        
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+            height: 20px;
+            margin: 10px 0;
+        }
+        
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .skip-to-content {
+            position: absolute;
+            left: -9999px;
+            z-index: 999;
+            padding: 1rem;
+            background: var(--celeste);
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        
+        .skip-to-content:focus {
+            left: 50%;
+            transform: translateX(-50%);
+            top: 1rem;
+        }
+    </style>
+    
+    <!-- CSS completo (async - no bloquea render) -->
+    <link rel="preload" href="/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/styles.css"></noscript>
     
     <!-- Google Fonts (async - no bloquea render) -->
-    <link rel="preload" 
-          href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" 
-          as="style" 
-          onload="this.onload=null;this.rel='stylesheet'">
-    <noscript>
-        <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-    </noscript>
+    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap"></noscript>
     
-    <!-- CSS principal -->
-    <link rel="stylesheet" href="/styles.css">
-    
+    <!-- Schema.org JSON-LD -->
     <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -69,10 +167,20 @@
   }
 }
 </script>
+    
+    <!-- Google Analytics (async - no bloquea render) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-98181VFK28"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
+        gtag('config', 'G-98181VFK28');
+    </script>
 </head>
  
 <body>
     <a href="#main-content" class="skip-to-content">Saltar al contenido principal</a>
+    
     <header>
         <div class="header-content">
             <a href="/" class="logo">
@@ -85,35 +193,36 @@
         </div>
     </header>
     
-<!-- Banner Info Rápida -->
-<div class="info-banner">
-    <div class="banner-wrapper">
-        <div class="banner-track">
-            <div class="banner-item">
-                💎 Más barato: <strong id="banner-barato">...</strong>
-            </div>
-            <div class="banner-item">
-                📈 Más caro: <strong id="banner-caro">...</strong>
-            </div>
-            <div class="banner-item">
-                🔥 Mayor suba: <strong id="banner-suba">...</strong>
-            </div>
-            <div class="banner-item">
-                ❄️ Mayor baja: <strong id="banner-baja">...</strong>
-            </div>
-            <div class="banner-item">
-                📊 Brecha: <strong id="banner-brecha">...</strong>
+    <!-- Banner Info Rápida -->
+    <div class="info-banner">
+        <div class="banner-wrapper">
+            <div class="banner-track">
+                <div class="banner-item">
+                    💎 Más barato: <strong id="banner-barato">...</strong>
+                </div>
+                <div class="banner-item">
+                    📈 Más caro: <strong id="banner-caro">...</strong>
+                </div>
+                <div class="banner-item">
+                    🔥 Mayor suba: <strong id="banner-suba">...</strong>
+                </div>
+                <div class="banner-item">
+                    ❄️ Mayor baja: <strong id="banner-baja">...</strong>
+                </div>
+                <div class="banner-item">
+                    📊 Brecha: <strong id="banner-brecha">...</strong>
+                </div>
             </div>
         </div>
+        <div class="banner-dots">
+            <span class="dot active"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+            <span class="dot"></span>
+        </div>
     </div>
-    <div class="banner-dots">
-        <span class="dot active"></span>
-        <span class="dot"></span>
-        <span class="dot"></span>
-        <span class="dot"></span>
-        <span class="dot"></span>
-    </div>
-</div>
+    
     <div class="container" id="main-content" role="main">
         <div style="text-align: center; margin-bottom: 2rem;">
             <div class="update-badge">
@@ -121,8 +230,9 @@
                 <span>Última actualización: <span id="last-update">Cargando...</span></span>
             </div>
         </div>
-        <section class="cotizaciones-grid" id="cotizaciones-grid" aria-label="Cotizaciones del dólar en tiempo real"
-            role="region" aria-live="polite">
+        
+        <section class="cotizaciones-grid" id="cotizaciones-grid" aria-label="Cotizaciones del dólar en tiempo real" role="region" aria-live="polite">
+            <!-- Dólar Blue -->
             <div class="cotizacion-card">
                 <div class="cotizacion-header">
                     <div class="cotizacion-nombre">Dólar Blue</div>
@@ -145,6 +255,8 @@
                     <span class="variacion-porcentaje"></span>
                 </div>
             </div>
+            
+            <!-- Dólar Oficial -->
             <div class="cotizacion-card">
                 <div class="cotizacion-header">
                     <div class="cotizacion-nombre">Dólar Oficial</div>
@@ -167,6 +279,8 @@
                     <span class="variacion-porcentaje"></span>
                 </div>
             </div>
+            
+            <!-- Dólar MEP -->
             <div class="cotizacion-card">
                 <div class="cotizacion-header">
                     <div class="cotizacion-nombre">Dólar MEP</div>
@@ -189,6 +303,8 @@
                     <span class="variacion-porcentaje"></span>
                 </div>
             </div>
+            
+            <!-- Dólar CCL -->
             <div class="cotizacion-card">
                 <div class="cotizacion-header">
                     <div class="cotizacion-nombre">Dólar CCL</div>
@@ -211,6 +327,8 @@
                     <span class="variacion-porcentaje"></span>
                 </div>
             </div>
+            
+            <!-- Dólar Tarjeta -->
             <div class="cotizacion-card">
                 <div class="cotizacion-header">
                     <div class="cotizacion-nombre">Dólar Tarjeta</div>
@@ -233,6 +351,8 @@
                     <span class="variacion-porcentaje"></span>
                 </div>
             </div>
+            
+            <!-- Dólar Cripto -->
             <div class="cotizacion-card">
                 <div class="cotizacion-header">
                     <div class="cotizacion-nombre">Dólar Cripto</div>
@@ -256,6 +376,8 @@
                 </div>
             </div>
         </section>
+        
+        <!-- Conversor -->
         <section class="conversor-section" aria-labelledby="conversor-title">
             <h2 class="section-title" id="conversor-title">🔄 Conversor</h2>
             <div class="conversor-grid">
@@ -263,16 +385,14 @@
                     <label class="conversor-label" for="input-from" id="label-from">USD Dólares</label>
                     <div class="conversor-input-wrapper">
                         <span class="currency-symbol" id="symbol-from" aria-hidden="true">$</span>
-                        <input type="number" class="conversor-input" id="input-from" value="100" min="0" step="0.01"
-                            placeholder="0.00" aria-label="Cantidad a convertir">
+                        <input type="number" class="conversor-input" id="input-from" value="100" min="0" step="0.01" placeholder="0.00" aria-label="Cantidad a convertir">
                     </div>
                     <select class="conversor-select" id="select-from" style="display: none;">
                         <option value="usd">USD Dólares</option>
                         <option value="ars">ARS Pesos</option>
                     </select>
                 </div>
-                <button class="swap-button" id="swap-btn" title="Invertir conversión"
-                    aria-label="Invertir dirección de conversión">
+                <button class="swap-button" id="swap-btn" title="Invertir conversión" aria-label="Invertir dirección de conversión">
                     ⇄
                 </button>
                 <div class="conversor-input-group">
@@ -292,6 +412,8 @@
                 <div class="conversion-result-value" id="conversion-value">$ 0</div>
             </div>
         </section>
+        
+        <!-- Brecha -->
         <div class="brecha-section">
             <div class="brecha-content">
                 <div class="brecha-info">
@@ -305,13 +427,14 @@
             </div>
         </div>
     </div>
+    
+    <!-- Footer -->
     <footer>
         <div class="footer-content">
             <div class="footer-grid">
                 <div class="footer-section">
                     <h3>CuantoEsta.ar</h3>
-                    <p>Cotización del dólar en Argentina actualizada en tiempo real. Sabé el precio al toque, sin
-                        vueltas.</p>
+                    <p>Cotización del dólar en Argentina actualizada en tiempo real. Sabé el precio al toque, sin vueltas.</p>
                 </div>
                 <div class="footer-section">
                     <h3>Fuentes</h3>
@@ -323,17 +446,13 @@
                 <div class="footer-section">
                     <h3>Contacto</h3>
                     <p>
-                        <a href="/cdn-cgi/l/email-protection#96f5e3f7f8e2f9f3e5e2f7b8f7e4d6f1fbf7fffab8f5f9fb"><span
-                                class="__cf_email__"
-                                data-cfemail="4e2d3b2f203a212b3d3a2f602f3c0e29232f2722602d2123">[email&#160;protected]</span></a><br>
+                        <a href="/cdn-cgi/l/email-protection#96f5e3f7f8e2f9f3e5e2f7b8f7e4d6f1fbf7fffab8f5f9fb"><span class="__cf_email__" data-cfemail="4e2d3b2f203a212b3d3a2f602f3c0e29232f2722602d2123">[email&#160;protected]</span></a><br>
                         ¿Sugerencias? ¿Feedback? Escribinos.
                     </p>
                 </div>
             </div>
             <div class="disclaimer">
-                ⚠️ <strong>Disclaimer:</strong> Los valores mostrados son informativos y orientativos. Para operaciones
-                financieras, consultá con tu banco o casa de cambio. CuantoEsta.ar no se responsabiliza por decisiones
-                tomadas en base a esta información.
+                ⚠️ <strong>Disclaimer:</strong> Los valores mostrados son informativos y orientativos. Para operaciones financieras, consultá con tu banco o casa de cambio. CuantoEsta.ar no se responsabiliza por decisiones tomadas en base a esta información.
             </div>
             <div class="footer-bottom">
                 © 2026 CuantoEsta.ar • Hecho con 💚 en Argentina
@@ -344,5 +463,5 @@
     <!-- JavaScript con defer (no bloquea render) -->
     <script src="/app.js" defer></script>
 </body>
- 
 </html>
+ 
