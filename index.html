@@ -35,117 +35,117 @@
     
     <!-- CRITICAL CSS INLINE (solo above-the-fold) -->
     <style>
-        :root {
-            --celeste: #0EA5E9;
-            --celeste-dark: #0284C7;
-            --blanco: #FFFFFF;
-            --verde: #10B981;
-            --rojo: #EF4444;
-            --gris-50: #F8FAFC;
-            --gris-100: #F1F5F9;
-            --gris-900: #0F172A;
-            --font-display: 'Sora', system-ui, sans-serif;
-            --font-body: 'Work Sans', system-ui, sans-serif;
-            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
-        }
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: var(--font-body);
-            background: linear-gradient(135deg, var(--gris-50) 0%, var(--blanco) 100%);
-            color: var(--gris-900);
-            line-height: 1.6;
-            min-height: 100vh;
-        }
-        
-        header {
-            background: var(--blanco);
-            border-bottom: 3px solid var(--celeste);
-            padding: 1.5rem 1rem;
-            box-shadow: var(--shadow-md);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .header-content {
-            max-width: 1200px;
-            margin: 0 auto;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            text-decoration: none;
-        }
-        
-        .logo-icon {
-            font-size: 2rem;
-        }
-        
-        .logo-text {
-            font-family: var(--font-display);
-            font-size: 1.75rem;
-            font-weight: 800;
-            color: var(--celeste);
-        }
-        
-        .logo-text span {
-            color: var(--gris-900);
-        }
-        
-        .tagline {
-            font-size: 0.875rem;
-            color: #475569;
-            font-weight: 500;
-        }
-        
-        .loading-skeleton {
-            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 8px;
-            height: 20px;
-            margin: 10px 0;
-        }
-        
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
-        
-        .skip-to-content {
-            position: absolute;
-            left: -9999px;
-            z-index: 999;
-            padding: 1rem;
-            background: var(--celeste);
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-        
-        .skip-to-content:focus {
-            left: 50%;
-            transform: translateX(-50%);
-            top: 1rem;
-        }
-    </style>
-    
-    <!-- CSS completo (async - no bloquea render) -->
-    <link rel="preload" href="/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link rel="stylesheet" href="/styles.css"></noscript>
+:root {
+    --celeste: #0EA5E9;
+    --celeste-dark: #0284C7;
+    --blanco: #FFFFFF;
+    --verde: #10B981;
+    --rojo: #EF4444;
+    --gris-50: #F8FAFC;
+    --gris-100: #F1F5F9;
+    --gris-900: #0F172A;
+    --font-display: 'Sora', system-ui, sans-serif;
+    --font-body: 'Work Sans', system-ui, sans-serif;
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+ 
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+ 
+body {
+    font-family: var(--font-body);
+    background: linear-gradient(135deg, var(--gris-50) 0%, var(--blanco) 100%);
+    color: var(--gris-900);
+    line-height: 1.6;
+    min-height: 100vh;
+}
+ 
+header {
+    background: var(--blanco);
+    border-bottom: 3px solid var(--celeste);
+    padding: 1.5rem 1rem;
+    box-shadow: var(--shadow-md);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+ 
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+ 
+.logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    text-decoration: none;
+}
+ 
+.logo-icon {
+    font-size: 2rem;
+}
+ 
+.logo-text {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: #0284C7;
+}
+ 
+.logo-text span {
+    color: var(--gris-900);
+}
+ 
+.tagline {
+    font-size: 0.875rem;
+    color: #475569;
+    font-weight: 500;
+}
+ 
+.loading-skeleton {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+    height: 20px;
+    margin: 10px 0;
+}
+ 
+@keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+}
+ 
+.skip-to-content {
+    position: absolute;
+    left: -9999px;
+}
+ 
+.skip-to-content:focus {
+    left: 50%;
+    transform: translateX(-50%);
+    top: 1rem;
+    z-index: 999;
+    padding: 1rem;
+    background: var(--celeste);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+</style>
+ 
+<!-- Después va el CSS async -->
+<link rel="preload" href="/styles.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+<noscript><link rel="stylesheet" href="/styles.css"></noscript>
     
     <!-- Google Fonts (async - no bloquea render) -->
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&family=Work+Sans:wght@400;500;600&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
