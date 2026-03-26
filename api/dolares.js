@@ -1,5 +1,3 @@
-let cacheAnterior = null;
-
 export default async function handler(req, res) {
     try {
         const endpoints = {
@@ -11,17 +9,25 @@ export default async function handler(req, res) {
             cripto: 'https://dolarapi.com/v1/dolares/cripto'
         };
 
+        // Fetch todos los endpoints en paralelo
         const responses = await Promise.all(
             Object.entries(endpoints).map(async ([key, url]) => {
-                const r = await fetch(url);
-                const data = await r.json();
-                return [key, data];
+                try {
+                    const r = await fetch(url);
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    const data = await r.json();
+                    return [key, data];
+                } catch (error) {
+                    console.error(`Error fetching ${key}:`, error);
+                    // Fallback si falla
+                    return [key, { compra: 0, venta: 0, fechaActualizacion: null }];
+                }
             })
         );
 
         const data = Object.fromEntries(responses);
 
-        // 🕒 Fecha más reciente
+        // Fecha más reciente
         const fechas = Object.values(data)
             .map(d => d?.fechaActualizacion)
             .filter(Boolean);
@@ -30,40 +36,32 @@ export default async function handler(req, res) {
             ? fechas.sort().reverse()[0]
             : new Date().toISOString();
 
-        // 🧠 Resultado base
-        let resultado = {
+        // Resultado (SIN variaciones - el frontend las calcula desde GitHub)
+        const resultado = {
             fecha,
-            ...data
+            blue: data.blue,
+            oficial: data.oficial,
+            mep: data.mep,
+            ccl: data.ccl,
+            tarjeta: data.tarjeta,
+            cripto: data.cripto
         };
 
-        // 🔥 Calcular variaciones
-        if (cacheAnterior) {
-            Object.keys(data).forEach(key => {
-                const actual = data[key]?.venta;
-                const anterior = cacheAnterior[key]?.venta;
-
-                if (actual && anterior) {
-                    const variacion = ((actual - anterior) / anterior * 100);
-                    resultado[key].variacion = variacion;
-                } else {
-                    resultado[key].variacion = 0;
-                }
-            });
-        } else {
-            Object.keys(data).forEach(key => {
-                resultado[key].variacion = 0;
-            });
-        }
-
-        // 💾 Guardar estado para próxima ejecución
-        cacheAnterior = JSON.parse(JSON.stringify(data));
-
-        // 🚀 Cache CDN
-        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate');
+        // Cache CDN de 5 minutos
+        res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
+        
+        // CORS headers (por si acaso)
+        res.setHeader('Access-Control-Allow-Origin', '*');
+        res.setHeader('Access-Control-Allow-Methods', 'GET');
 
         res.status(200).json(resultado);
 
     } catch (error) {
-        res.status(500).json({ error: 'Error obteniendo cotizaciones' });
+        console.error('Error en /api/dolares:', error);
+        res.status(500).json({ 
+            error: 'Error obteniendo cotizaciones',
+            message: error.message 
+        });
     }
 }
+
