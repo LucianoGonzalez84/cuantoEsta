@@ -101,14 +101,15 @@
         actualizarCotizacion('tarjeta', cotizaciones.tarjeta);
         actualizarCotizacion('cripto', cotizaciones.cripto);
  
-        // Actualizar variaciones
-        actualizarVariaciones();
- 
-        // Actualizar banner
-        actualizarBanner();
- 
         // Actualizar brecha
         actualizarBrecha();
+        
+        // Actualizar banner DESPUÉS de tener todos los datos
+        console.log('📊 Llamando actualizarBanner con datos:', cotizaciones);
+        actualizarBanner();
+ 
+        // Actualizar variaciones (pueden tardar por el fetch del histórico)
+        actualizarVariaciones();
     }
  
     function actualizarCotizacion(tipo, valores) {
@@ -338,55 +339,75 @@
     let bannerInterval;
  
     function initBannerCarousel() {
+        // En desktop, no hacer nada
+        if (window.innerWidth > 768) {
+            return;
+        }
+ 
         const track = document.querySelector('.banner-track');
         const dots = document.querySelectorAll('.banner-dots .dot');
         
-        // En desktop, limpiar todo y salir
-        if (window.innerWidth > 768) {
-            if (track) track.style.transform = 'translateX(0)';
-            if (bannerInterval) {
-                clearInterval(bannerInterval);
-                bannerInterval = null;
-            }
+        if (!track || dots.length === 0) {
+            console.error('❌ Banner: no se encontraron elementos');
+            console.log('Track:', !!track, 'Dots:', dots.length);
             return;
         }
  
-        if (!track || dots.length === 0) {
-            console.warn('⚠️ Banner carousel: elementos no encontrados');
-            return;
-        }
-        
-        console.log('📱 Banner carousel mobile iniciado');
+        console.log('📱 Iniciando carrusel mobile');
  
         function goToSlide(index) {
             bannerSlide = index;
-            track.style.transform = `translateX(${-bannerSlide * 100}%)`;
-            dots.forEach((dot, i) => dot.classList.toggle('active', i === bannerSlide));
+            const offset = -index * 100;
+            track.style.transform = `translateX(${offset}%)`;
+            dots.forEach((dot, i) => {
+                if (i === index) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
         }
  
+        // Click en dots
         dots.forEach((dot, i) => {
             dot.addEventListener('click', () => {
+                if (bannerInterval) clearInterval(bannerInterval);
                 goToSlide(i);
-                clearInterval(bannerInterval);
-                bannerInterval = setInterval(() => goToSlide((bannerSlide + 1) % bannerTotal), 3000);
+                bannerInterval = setInterval(() => {
+                    goToSlide((bannerSlide + 1) % bannerTotal);
+                }, 3000);
             });
         });
  
-        let touchStart = 0;
+        // Swipe
+        let touchStartX = 0;
         track.addEventListener('touchstart', (e) => {
-            touchStart = e.touches[0].screenX;
-            clearInterval(bannerInterval);
+            touchStartX = e.touches[0].screenX;
+            if (bannerInterval) clearInterval(bannerInterval);
         }, { passive: true });
  
         track.addEventListener('touchend', (e) => {
-            const diff = touchStart - e.changedTouches[0].screenX;
+            const touchEndX = e.changedTouches[0].screenX;
+            const diff = touchStartX - touchEndX;
+            
             if (Math.abs(diff) > 50) {
-                goToSlide(diff > 0 ? Math.min(bannerSlide + 1, 4) : Math.max(bannerSlide - 1, 0));
+                if (diff > 0 && bannerSlide < 4) {
+                    goToSlide(bannerSlide + 1);
+                } else if (diff < 0 && bannerSlide > 0) {
+                    goToSlide(bannerSlide - 1);
+                }
             }
-            bannerInterval = setInterval(() => goToSlide((bannerSlide + 1) % bannerTotal), 3000);
+            
+            bannerInterval = setInterval(() => {
+                goToSlide((bannerSlide + 1) % bannerTotal);
+            }, 3000);
         }, { passive: true });
  
-        bannerInterval = setInterval(() => goToSlide((bannerSlide + 1) % bannerTotal), 3000);
+        // Autoplay
+        goToSlide(0); // Empezar en el primero
+        bannerInterval = setInterval(() => {
+            goToSlide((bannerSlide + 1) % bannerTotal);
+        }, 3000);
     }
  
     // ========================================
