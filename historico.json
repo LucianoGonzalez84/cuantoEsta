@@ -1,34 +1,6 @@
 {
   "ultimas_cotizaciones": [
     {
-      "fecha": "2026-11-02T10:26:28.355Z",
-      "timestamp": 1793615188355,
-      "blue": {
-        "compra": 1545,
-        "venta": 1565
-      },
-      "oficial": {
-        "compra": 1510,
-        "venta": 1560
-      },
-      "mep": {
-        "compra": 1565.4,
-        "venta": 1575
-      },
-      "ccl": {
-        "compra": 1655.3,
-        "venta": 1658.5
-      },
-      "tarjeta": {
-        "compra": 1963,
-        "venta": 2028
-      },
-      "cripto": {
-        "compra": 1639.36,
-        "venta": 1642.43
-      }
-    },
-    {
       "fecha": "2026-11-03T10:23:57.315Z",
       "timestamp": 1793701437315,
       "blue": {
@@ -194,6 +166,34 @@
       "cripto": {
         "compra": 1647.76,
         "venta": 1653.41
+      }
+    },
+    {
+      "fecha": "2026-11-09T10:48:03.208Z",
+      "timestamp": 1794221283208,
+      "blue": {
+        "compra": 1535,
+        "venta": 1555
+      },
+      "oficial": {
+        "compra": 1520,
+        "venta": 1570
+      },
+      "mep": {
+        "compra": 1560.2,
+        "venta": 1587.9
+      },
+      "ccl": {
+        "compra": 1658.4,
+        "venta": 1664.9
+      },
+      "tarjeta": {
+        "compra": 1976,
+        "venta": 2041
+      },
+      "cripto": {
+        "compra": 1651.2,
+        "venta": 1656.63
       }
     }
   ]
